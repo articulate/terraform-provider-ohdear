@@ -8,21 +8,20 @@ import (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"api_token": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				EnvDefaultFunc("OHDEAR_TOKEN", nil),
+			"api_token": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_TOKEN", nil),
 			},
 		},
-		ResourcesMap: map[string]*schema.Resource{
-			"site": resourceSite(),
-		},
-		ConfigureFunc: providerConfigure,
+		// ResourcesMap: map[string]*schema.Resource{
+		// 	"site": resourceSite(),
+		// },
+		// ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	config := Config{
-		Token: d.Get("api_token").(string),
-	}
+	config := Config{}
+	return config, nil
 }

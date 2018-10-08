@@ -1,8 +1,6 @@
 package ohdear
 
-import (
-	"log"
-)
+import ()
 
 type Config struct {
 	Token string
