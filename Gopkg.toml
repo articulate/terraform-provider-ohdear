@@ -1,0 +1,7 @@
+[[constraint]]
+  version = "0.11.7"
+  name = "github.com/hashicorp/terraform"
+
+[prune]
+  go-tests = true
+  unused-packages = true
