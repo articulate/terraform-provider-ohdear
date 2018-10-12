@@ -14,14 +14,14 @@ func Provider() terraform.ResourceProvider {
 				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_TOKEN", nil),
 			},
 		},
-		// ResourcesMap: map[string]*schema.Resource{
-		// 	"site": resourceSite(),
-		// },
-		// ConfigureFunc: providerConfigure,
+		ResourcesMap: map[string]*schema.Resource{
+			"site": resourceSite(),
+		},
+		ConfigureFunc: providerConfigure,
 	}
 }
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	config := Config{}
+	config := Config{Token: d.Get("api_token").(string)}
 	return config, nil
 }
