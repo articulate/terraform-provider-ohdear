@@ -3,12 +3,10 @@ package ohdear
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform/helper/schema"
-	//"github.com/hashicorp/terraform/helper/validation"
-	"github.com/smallnest/goreq"
-	//"runtime"
-	"github.com/davecgh/go-spew/spew"
+	"strconv"
 
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/smallnest/goreq"
 )
 
 type Site struct {
@@ -75,12 +73,11 @@ func resourceSiteCreate(d *schema.ResourceData, m interface{}) error {
 	if (err == nil) {
 		s := fmt.Sprintf("%f", data["id"].(float64))
 		d.SetId(s)
-		//runtime.Breakpoint()
-		spew.Dump(data)
 	} else {
 		fmt.Println(err)
 	}
-	return nil
+
+	return resourceSiteRead(d, m)
 }
 
 func resourceSiteUpdate(d *schema.ResourceData, m interface{}) error {
@@ -88,23 +85,31 @@ func resourceSiteUpdate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
+	resp, body, err := goreq.New().Get("https://ohdear.app/api/sites/" + d.Id()).
+		SetHeader("Authorization", "Bearer "+m.(Config).Token).
+		SetHeader("Accept", "application/json").
+		SetHeader("Content-Type", "application/json").
+		End()
+
+	var datai interface{}
+	_ = json.Unmarshal([]byte(body), &datai)
+	data, _ := datai.(map[string]interface{})
+
+	if (err == nil && resp.Status == "200 OK") {
+		d.Set("team_id", strconv.Itoa(int(data["team_id"].(float64))))
+		d.Set("url", data["url"].(string))
+	}
+
 	return nil
 }
 
 func resourceSiteDelete(d *schema.ResourceData, m interface{}) error {
-	newSite := Site{
-		Url: d.Get("url").(string),
-		TeamId: d.Get("team_id").(string),
-	}
-
-	encoded, _ := json.Marshal(newSite)
-
 	resp, _, _ := goreq.New().Delete("https://ohdear.app/api/sites/" + d.Id()).
 		SetHeader("Authorization", "Bearer "+m.(Config).Token).
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json").
-		SendRawString(string(encoded)).
 		End()
+
 	fmt.Println(&resp)
 
 	return nil
