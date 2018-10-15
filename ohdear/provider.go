@@ -15,7 +15,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"site": resourceSite(),
+			"ohdear_site": resourceOhdearSite(),
 		},
 		ConfigureFunc: providerConfigure,
 	}

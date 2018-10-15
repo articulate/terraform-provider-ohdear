@@ -14,7 +14,7 @@ type Site struct {
 	TeamId string `json:"team_id"`
 }
 
-func resourceSite() *schema.Resource {
+func resourceOhdearSite() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSiteCreate,
 		Read:   resourceSiteRead,
@@ -36,7 +36,6 @@ func resourceSite() *schema.Resource {
 	}
 }
 
-
 func resourceSiteExists(d *schema.ResourceData, m interface{}) (bool, error) {
 	_, _, err := goreq.New().Get("https://ohdear.app/api/sites").
 		SetHeader("Authorization", "Bearer "+m.(Config).Token).
@@ -44,7 +43,7 @@ func resourceSiteExists(d *schema.ResourceData, m interface{}) (bool, error) {
 		SetHeader("Content-Type", "application/json").
 		End()
 
-	if (err == nil) {
+	if err == nil {
 		return true, nil
 	} else {
 		return false, nil
@@ -53,7 +52,7 @@ func resourceSiteExists(d *schema.ResourceData, m interface{}) (bool, error) {
 
 func resourceSiteCreate(d *schema.ResourceData, m interface{}) error {
 	newSite := Site{
-		Url: d.Get("url").(string),
+		Url:    d.Get("url").(string),
 		TeamId: d.Get("team_id").(string),
 	}
 
@@ -70,7 +69,7 @@ func resourceSiteCreate(d *schema.ResourceData, m interface{}) error {
 	err := json.Unmarshal([]byte(body), &datai)
 	data, _ := datai.(map[string]interface{})
 
-	if (err == nil) {
+	if err == nil {
 		s := fmt.Sprintf("%f", data["id"].(float64))
 		d.SetId(s)
 	} else {
@@ -85,7 +84,7 @@ func resourceSiteUpdate(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
-	resp, body, err := goreq.New().Get("https://ohdear.app/api/sites/" + d.Id()).
+	resp, body, err := goreq.New().Get("https://ohdear.app/api/sites/"+d.Id()).
 		SetHeader("Authorization", "Bearer "+m.(Config).Token).
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json").
@@ -95,7 +94,7 @@ func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
 	_ = json.Unmarshal([]byte(body), &datai)
 	data, _ := datai.(map[string]interface{})
 
-	if (err == nil && resp.Status == "200 OK") {
+	if err == nil && resp.Status == "200 OK" {
 		d.Set("team_id", strconv.Itoa(int(data["team_id"].(float64))))
 		d.Set("url", data["url"].(string))
 	}
@@ -104,7 +103,7 @@ func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
 }
 
 func resourceSiteDelete(d *schema.ResourceData, m interface{}) error {
-	resp, _, _ := goreq.New().Delete("https://ohdear.app/api/sites/" + d.Id()).
+	resp, _, _ := goreq.New().Delete("https://ohdear.app/api/sites/"+d.Id()).
 		SetHeader("Authorization", "Bearer "+m.(Config).Token).
 		SetHeader("Accept", "application/json").
 		SetHeader("Content-Type", "application/json").
