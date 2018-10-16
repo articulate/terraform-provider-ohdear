@@ -18,18 +18,19 @@ func resourceOhdearSite() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceSiteCreate,
 		Read:   resourceSiteRead,
-		Update: resourceSiteUpdate,
 		Delete: resourceSiteDelete,
 		Exists: resourceSiteExists,
 		Schema: map[string]*schema.Schema{
 			"url": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 				Description: "URL of the site to be checked",
 			},
 			"team_id": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 				Description: "ID of the team for this site",
 			},
 		},
@@ -77,10 +78,6 @@ func resourceSiteCreate(d *schema.ResourceData, m interface{}) error {
 	}
 
 	return resourceSiteRead(d, m)
-}
-
-func resourceSiteUpdate(d *schema.ResourceData, m interface{}) error {
-	return nil
 }
 
 func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
