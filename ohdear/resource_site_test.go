@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
-func TestAccOhdearSiteCreate(t *testing.T) {
+func TestAccOhdearSiteLifecycle(t *testing.T) {
 	ri := acctest.RandInt()
 	resource.Test(t, resource.TestCase{
 		Providers: testAccProviders,
@@ -17,6 +17,12 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1775"),
+				),
+			},
+			{
+				Config: testConfigForOhdearSiteUpdate(ri),
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://updated.test-%d.com", ri)),
 				),
 			},
 		},
@@ -30,4 +36,12 @@ resource "ohdear_site" "test-%d" {
   url      = "http://www.test-%d.com"
 }
 `, rInt, rInt)
+}
+
+func testConfigForOhdearSiteUpdate(rInt int) string {
+	return fmt.Sprintf(`
+resource "ohdear_site" "test-%d" {
+  team_id  = "1775"
+  url      = "http://updated.test-%d.com"
+}`, rInt, rInt)
 }
