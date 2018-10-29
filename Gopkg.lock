@@ -34,6 +34,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e9a22e4d1f82d2b4b36e3cede2a1dfb41a798574ecf771b8d05e4d2ffe7c2a07"
+  name = "github.com/articulate/ohdear-sdk"
+  packages = ["ohdear"]
+  pruneopts = "UT"
+  revision = "bcf297a47a7a96f40ffc3b8f120db82be2013ac9"
+
+[[projects]]
   digest = "1:c590ed03a8431029a93eb0ff1645604964144c06623b97f5b4d4f64ac820dd46"
   name = "github.com/aws/aws-sdk-go"
   packages = [
@@ -396,14 +404,6 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
-  digest = "1:7aefb397a53fc437c90f0fdb3e1419c751c5a3a165ced52325d5d797edf1aca6"
-  name = "github.com/moul/http2curl"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "9ac6cf4d929b2fa8fd2d2e6dec5bb0feb4f4911d"
-
-[[projects]]
   digest = "1:9ec6cf1df5ad1d55cf41a43b6b1e7e118a91bade4f68ff4303379343e40c0e25"
   name = "github.com/oklog/run"
   packages = ["."]
@@ -423,14 +423,6 @@
   pruneopts = "UT"
   revision = "dcda3199365ca2a5f24aea4c42aa56f6a197d117"
   version = "v1.1.2"
-
-[[projects]]
-  branch = "master"
-  digest = "1:716d9c73123eaf4c069491a840499334ce135917b6b612826977830621728d6b"
-  name = "github.com/smallnest/goreq"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "2e3372c80388e4b95c699c950eb2c9faba6c32e0"
 
 [[projects]]
   digest = "1:4aeb3860275fa1fd60cccfb5a6ef85da438bf17402e1e84412ade4d4b55066a0"
@@ -488,7 +480,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:68bde69dfc39fb337da197554ca7d453d7d9bf558e97eb3ad477a31c96755457"
+  digest = "1:57558ae9af42770158eb5584d9466101c965cd644b01d32dd15720da0a4a0286"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -498,10 +490,7 @@
     "http2",
     "http2/hpack",
     "idna",
-    "internal/socks",
     "internal/timeseries",
-    "proxy",
-    "publicsuffix",
     "trace",
   ]
   pruneopts = "UT"
@@ -587,13 +576,12 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/davecgh/go-spew/spew",
+    "github.com/articulate/ohdear-sdk/ohdear",
     "github.com/hashicorp/terraform/helper/acctest",
     "github.com/hashicorp/terraform/helper/resource",
     "github.com/hashicorp/terraform/helper/schema",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
-    "github.com/smallnest/goreq",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
