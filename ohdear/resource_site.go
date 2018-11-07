@@ -32,6 +32,40 @@ func resourceOhdearSite() *schema.Resource {
 				ForceNew:    true,
 				Description: "ID of the team for this site",
 			},
+			"checks": &schema.Schema{
+				Type:     schema.TypeSet,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uptime": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"broken_links": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"certificate_health": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"mixed_content": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"certificate_transparency": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
+			},
 		},
 	}
 }
@@ -50,7 +84,7 @@ func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Printf("[DEBUG] Calling Create lifecycle function for site %v\n", d.Id)
 	site := &ohdear.Site{
 		Url:    d.Get("url").(string),
-		TeamId: d.Get("team_id").(int),
+		TeamID: d.Get("team_id").(int),
 	}
 
 	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
@@ -59,7 +93,7 @@ func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("error creating site: %s", err.Error())
 	}
 
-	d.Set("site_id", newSite.Id)
+	d.Set("site_id", newSite.ID)
 	d.SetId(d.Get("url").(string))
 	return resourceOhdearSiteRead(d, meta)
 }
@@ -78,13 +112,9 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	d.Set("url", newSite.Url)
-	d.Set("team_id", newSite.TeamId)
+	d.Set("team_id", newSite.TeamID)
 
 	return nil
-}
-
-func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
-	return resourceOhdearSiteRead(d, meta)
 }
 
 func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
