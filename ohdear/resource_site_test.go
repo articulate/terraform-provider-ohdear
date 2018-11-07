@@ -16,7 +16,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 			{
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1820"),
+					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
 					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://www.test-%d.com", ri)),
 				),
 			},
@@ -32,14 +32,14 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 			{
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1820"),
+					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
 					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://www.test-%d.com", ri)),
 				),
 			},
 			{
 				Config: testConfigForOhdearSiteUpdate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1820"),
+					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
 					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://updated.test-%d.com", ri)),
 				),
 			},
@@ -50,7 +50,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 func testConfigForOhdearSiteCreate(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "test-%d" {
-  team_id  = 1820
+  team_id  = 1853
   url      = "http://www.test-%d.com"
 }
 `, rInt, rInt)
@@ -59,7 +59,7 @@ resource "ohdear_site" "test-%d" {
 func testConfigForOhdearSiteUpdate(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "test-%d" {
-  team_id  = 1820
+  team_id  = 1853
   url      = "http://updated.test-%d.com"
 }`, rInt, rInt)
 }
