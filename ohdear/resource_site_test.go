@@ -2,6 +2,9 @@ package ohdear
 
 import (
 	"fmt"
+	"github.com/hashicorp/terraform/terraform"
+	"net/http"
+	"strconv"
 	"testing"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -10,14 +13,16 @@ import (
 
 func TestAccOhdearSiteCreate(t *testing.T) {
 	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://www.test-%d.com", ri)),
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
 		},
@@ -26,40 +31,107 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 
 func TestAccOhdearSiteLifecycle(t *testing.T) {
 	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
+		Providers:    testAccProviders,
+		CheckDestroy: ensureSiteDestroyed,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://www.test-%d.com", ri)),
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
 			{
 				Config: testConfigForOhdearSiteUpdate(ri),
 				Check: resource.ComposeTestCheckFunc(
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "team_id", "1853"),
-					resource.TestCheckResourceAttr(fmt.Sprintf("ohdear_site.test-%d", ri), "url", fmt.Sprintf("http://updated.test-%d.com", ri)),
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func testConfigForOhdearSiteCreate(rInt int) string {
-	return fmt.Sprintf(`
-resource "ohdear_site" "test-%d" {
-  team_id  = 1853
-  url      = "http://www.test-%d.com"
+func getTestSiteResourceFQN(ri int) string {
+	return fmt.Sprintf("ohdear_site.%s", getTestResourceName(ri))
 }
-`, rInt, rInt)
+
+func getTestResourceName(ri int) string {
+	return fmt.Sprintf("testAcc-%d", ri)
+}
+
+func ensureSiteDestroyed(s *terraform.State) error {
+	for _, r := range s.RootModule().Resources {
+		exists, err := doesSiteExist(r.Primary.ID)
+		if exists {
+			if err != nil {
+			}
+
+			return fmt.Errorf("Test site still exists, beware of the danglers")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func ensureSiteExists(name string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		missingErr := fmt.Errorf("resource not found: %s", name)
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return missingErr
+		}
+		exists, err := doesSiteExist(rs.Primary.ID)
+
+		if !exists {
+			if err != nil {
+				return err
+			}
+			return missingErr
+		}
+
+		return nil
+	}
+}
+
+func doesSiteExist(strID string) (bool, error) {
+	client := testAccProvider.Meta().(*Config).client
+	id, _ := strconv.Atoi(strID)
+	if _, res, err := client.SiteService.GetSite(id); err != nil {
+		if res.StatusCode == http.StatusNotFound {
+			return false, nil
+		}
+
+		return false, err
+	}
+
+	return true, nil
+}
+
+func testConfigForOhdearSiteCreate(rInt int) string {
+	name := getTestResourceName(rInt)
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  team_id  = 11
+  url      = "https://www.test-%d.com"
+}
+`, name, rInt)
 }
 
 func testConfigForOhdearSiteUpdate(rInt int) string {
+	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
-resource "ohdear_site" "test-%d" {
-  team_id  = 1853
-  url      = "http://updated.test-%d.com"
-}`, rInt, rInt)
+resource "ohdear_site" "%s" {
+  team_id  = 11
+  url      = "https://updated.test-%d.com"
+  checks   = [
+	  "uptime"
+  ]
+}`, name, rInt)
 }

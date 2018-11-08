@@ -1,6 +1,10 @@
 [[constraint]]
-  version = "0.11.7"
+  branch = "quick-additions"
+  name = "github.com/articulate/ohdear-sdk"
+
+[[constraint]]
   name = "github.com/hashicorp/terraform"
+  version = "0.11.10"
 
 [prune]
   go-tests = true

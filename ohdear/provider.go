@@ -17,7 +17,7 @@ func Provider() terraform.ResourceProvider {
 			"api_url": {
 				Type:        schema.TypeString,
 				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_API_URL", nil),
+				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_API_URL", "https://ohdear.app"),
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
@@ -29,7 +29,7 @@ func Provider() terraform.ResourceProvider {
 
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	apiToken := d.Get("api_token").(string)
-	baseURL := "https://ohdear.app"
+	baseURL := d.Get("api_url").(string)
 	client, err := ohdear.NewClient(baseURL, apiToken)
 	if err != nil {
 		return nil, err
