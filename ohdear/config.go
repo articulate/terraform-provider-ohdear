@@ -1,7 +1,10 @@
 package ohdear
 
-import ()
+import "github.com/articulate/ohdear-sdk/ohdear"
 
 type Config struct {
-	Token string
+	apiToken string
+	baseURL  string
+
+	client *ohdear.Client
 }

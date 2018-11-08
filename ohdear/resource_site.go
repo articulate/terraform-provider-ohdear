@@ -1,115 +1,126 @@
 package ohdear
 
 import (
-	"encoding/json"
 	"fmt"
-	"strconv"
+	"io/ioutil"
+	"log"
 
+	"github.com/articulate/ohdear-sdk/ohdear"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/smallnest/goreq"
 )
-
-type Site struct {
-	Url    string `json:"url"`
-	TeamId string `json:"team_id"`
-}
 
 func resourceOhdearSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceSiteCreate,
-		Read:   resourceSiteRead,
-		Update: resourceSiteUpdate,
-		Delete: resourceSiteDelete,
-		Exists: resourceSiteExists,
+		Create: resourceOhdearSiteCreate,
+		Read:   resourceOhdearSiteRead,
+		Delete: resourceOhdearSiteDelete,
 		Schema: map[string]*schema.Schema{
+			"site_id": &schema.Schema{
+				Type:        schema.TypeInt,
+				Computed:    true,
+				Description: "Primary Key of the site",
+			},
 			"url": &schema.Schema{
 				Type:        schema.TypeString,
 				Required:    true,
+				ForceNew:    true,
 				Description: "URL of the site to be checked",
 			},
 			"team_id": &schema.Schema{
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Required:    true,
+				ForceNew:    true,
 				Description: "ID of the team for this site",
+			},
+			"checks": &schema.Schema{
+				Type:     schema.TypeSet,
+				ForceNew: true,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uptime": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"broken_links": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"certificate_health": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"mixed_content": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+						"certificate_transparency": &schema.Schema{
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
+					},
+				},
 			},
 		},
 	}
 }
 
-func resourceSiteExists(d *schema.ResourceData, m interface{}) (bool, error) {
-	_, _, err := goreq.New().Get("https://ohdear.app/api/sites").
-		SetHeader("Authorization", "Bearer "+m.(Config).Token).
-		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
-		End()
-
-	if err == nil {
-		return true, nil
-	} else {
-		return false, nil
+func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, error) {
+	client := meta.(*Config).client
+	log.Printf("[DEBUG] Calling Exists lifecycle function for site %v\n", d.Id)
+	if _, _, err := client.SiteService.GetSite(d.Get("site_id").(int)); err != nil {
+		return false, err
 	}
+
+	return true, nil
 }
 
-func resourceSiteCreate(d *schema.ResourceData, m interface{}) error {
-	newSite := Site{
+func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[DEBUG] Calling Create lifecycle function for site %v\n", d.Id)
+	site := &ohdear.Site{
 		Url:    d.Get("url").(string),
-		TeamId: d.Get("team_id").(string),
+		TeamID: d.Get("team_id").(int),
 	}
 
-	encoded, _ := json.Marshal(newSite)
+	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
 
-	_, body, _ := goreq.New().Post("https://ohdear.app/api/sites").
-		SetHeader("Authorization", "Bearer "+m.(Config).Token).
-		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
-		SendRawString(string(encoded)).
-		End()
-
-	var datai interface{}
-	err := json.Unmarshal([]byte(body), &datai)
-	data, _ := datai.(map[string]interface{})
-
-	if err == nil {
-		s := fmt.Sprintf("%f", data["id"].(float64))
-		d.SetId(s)
-	} else {
-		fmt.Println(err)
+	if err != nil {
+		return fmt.Errorf("error creating site: %s", err.Error())
 	}
 
-	return resourceSiteRead(d, m)
+	d.Set("site_id", newSite.ID)
+	d.SetId(d.Get("url").(string))
+	return resourceOhdearSiteRead(d, meta)
 }
 
-func resourceSiteUpdate(d *schema.ResourceData, m interface{}) error {
-	return nil
-}
+func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[DEBUG] Calling Read lifecycle function for site %v\n", d.Id)
+	id := d.Get("site_id").(int)
+	newSite, resp, err := meta.(*Config).client.SiteService.GetSite(id)
 
-func resourceSiteRead(d *schema.ResourceData, m interface{}) error {
-	resp, body, err := goreq.New().Get("https://ohdear.app/api/sites/"+d.Id()).
-		SetHeader("Authorization", "Bearer "+m.(Config).Token).
-		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
-		End()
+	defer resp.Body.Close()
 
-	var datai interface{}
-	_ = json.Unmarshal([]byte(body), &datai)
-	data, _ := datai.(map[string]interface{})
-
-	if err == nil && resp.Status == "200 OK" {
-		d.Set("team_id", strconv.Itoa(int(data["team_id"].(float64))))
-		d.Set("url", data["url"].(string))
+	htmlData, err := ioutil.ReadAll(resp.Body)
+	log.Printf("[DEBUG] Response from Ohdear API: %s", string(htmlData))
+	if err != nil {
+		return fmt.Errorf("Error reading Site: %s", err.Error())
 	}
+
+	d.Set("url", newSite.Url)
+	d.Set("team_id", newSite.TeamID)
 
 	return nil
 }
 
-func resourceSiteDelete(d *schema.ResourceData, m interface{}) error {
-	resp, _, _ := goreq.New().Delete("https://ohdear.app/api/sites/"+d.Id()).
-		SetHeader("Authorization", "Bearer "+m.(Config).Token).
-		SetHeader("Accept", "application/json").
-		SetHeader("Content-Type", "application/json").
-		End()
+func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
+	log.Printf("[DEBUG] Calling Delete lifecycle function for site %v\n", d.Id)
+	id := d.Get("site_id").(int)
 
-	fmt.Println(&resp)
-
-	return nil
+	_, err := meta.(*Config).client.SiteService.DeleteSite(id)
+	return err
 }

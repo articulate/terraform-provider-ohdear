@@ -1,3 +1,4 @@
+[![Go Report Card](https://goreportcard.com/badge/github.com/articulate/terraform-provider-ohdear)](https://goreportcard.com/report/github.com/articulate/terraform-provider-ohdear)
 Terraform Provider OhDear
 ==================
 
@@ -27,17 +28,16 @@ You can specify the inputs in your tf plan:
 
 ```
 provider "ohdear" {
-  TODO = "TODO"
+  api_token = "XXXX"
+  api_url   = "https://ohdear.app"
 }
 ```
 
 OR you can specify environment variables:
 
-TODO Modify these:
 ```
-OHDEAR_ORG_NAME=<OhDear instance name, e.g. dev-XXXXXX>
-OHDEAR_API_TOKEN=<OhDear instance api token with the Administrator role>
-OHDEAR_BASE_URL=<OhDear base url, e.g. OhDearpreview.com>
+OHDEAR_API_TOKEN=<OhDear api token>
+OHDEAR_BASE_URL="https://ohdear.app"
 ```
 
 Building The Provider
@@ -71,11 +71,13 @@ Example terraform plan:
 
 ```
 provider "ohdear" {
-  TODO = "TODO"
+  api_token = "XXXX"
+  api_url   = "https://ohdear.app"
 }
 
-resource "ohdear_todo" "blah" {
-  TODO = "TODO"
+resource "ohdear_site" "fnord" {
+  team_id = 1337
+  url     = "https://site.iwanttomonitor.com"
 }
 ```
 
