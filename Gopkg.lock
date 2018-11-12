@@ -53,12 +53,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  branch = "quick-additions"
+  branch = "master"
   digest = "1:0bb347a852d34a6752975be2ddca8e93d224227edb0f1a85cb687d5d1f79cfc6"
   name = "github.com/articulate/ohdear-sdk"
   packages = ["ohdear"]
   pruneopts = "UT"
-  revision = "356e8edda558c1948d841762b211090d3e82a535"
+  revision = "16cdc69b35ce325012fa774cccec7ab0f78343cc"
 
 [[projects]]
   digest = "1:d364921da3ffa1989e250e4128cdb8684fed4c1131a609b5a8de9d6bf360ff0d"

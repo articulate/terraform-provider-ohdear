@@ -154,11 +154,17 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	for _, check := range site.Checks {
 		if check.Enabled {
 			if !contains(checks, check.Type) {
-				client.CheckService.DisableCheck(check.ID)
+				_, err := client.CheckService.DisableCheck(check.ID)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			if contains(checks, check.Type) {
-				client.CheckService.EnableCheck(check.ID)
+				_, err := client.CheckService.EnableCheck(check.ID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
