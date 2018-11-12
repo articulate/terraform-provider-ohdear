@@ -1,5 +1,5 @@
 [[constraint]]
-  branch = "quick-additions"
+  branch = "master"
   name = "github.com/articulate/ohdear-sdk"
 
 [[constraint]]
