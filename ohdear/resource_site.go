@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"runtime"
 	"strconv"
 
 	"github.com/articulate/ohdear-sdk/ohdear"
@@ -79,7 +78,7 @@ func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, e
 func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
 
-	checks := convertInterfaceToStringArr(d.Get("checks"))
+	checks := convertStringSet(d.Get("checks"))
 	if len(checks) == 0 {
 		checks = ohdear.CheckTypes
 	}
@@ -119,7 +118,7 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	// Supporting defaulting to all enabled checks
-	cfgChecks := convertInterfaceToStringArr(d.Get("checks"))
+	cfgChecks := convertStringSet(d.Get("checks"))
 	if len(checks) != len(newSite.Checks) || len(cfgChecks) > 0 {
 		d.Set("checks", checks)
 	}
@@ -143,13 +142,12 @@ func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
 
 func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*Config).client
-	checks := convertInterfaceToStringArrNullable(d.Get("checks"))
+	checks := convertStringSet(d.Get("checks"))
 	id, err := getSiteID(d)
 	if err != nil {
 		return err
 	}
 
-	runtime.Breakpoint()
 	site, _, err := client.SiteService.GetSite(id)
 	if err != nil {
 		return err

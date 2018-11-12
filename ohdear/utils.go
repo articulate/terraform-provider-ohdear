@@ -1,5 +1,9 @@
 package ohdear
 
+import (
+	"github.com/hashicorp/terraform/helper/schema"
+)
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -8,6 +12,16 @@ func contains(s []string, e string) bool {
 	}
 
 	return false
+}
+
+func convertStringSet(purportedSet interface{}) []string {
+	var arr []string
+
+	if set, ok := purportedSet.(*schema.Set); ok {
+		arr = convertInterfaceToStringArr(set.List())
+	}
+
+	return arr
 }
 
 func convertInterfaceToStringArr(purportedList interface{}) []string {
