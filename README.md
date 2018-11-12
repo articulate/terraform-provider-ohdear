@@ -36,7 +36,7 @@ provider "ohdear" {
 OR you can specify environment variables:
 
 ```
-OHDEAR_API_TOKEN=<OhDear api token>
+OHDEAR_TOKEN=<OhDear api token>
 OHDEAR_BASE_URL="https://ohdear.app"
 ```
 
