@@ -2,10 +2,11 @@ package ohdear
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/terraform"
 	"net/http"
 	"strconv"
 	"testing"
+
+	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
@@ -21,7 +22,25 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccOhdearSiteImport(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteCreate(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
@@ -40,7 +59,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
@@ -48,8 +67,36 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Config: testConfigForOhdearSiteUpdate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccOhdearSiteCheckManagement(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: ensureSiteDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteCreate(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+				),
+			},
+			{
+				Config: testConfigForOhdearSiteModifyCheckSettings(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
@@ -118,17 +165,29 @@ func testConfigForOhdearSiteCreate(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 11
+  team_id  = 1910
   url      = "https://www.test-%d.com"
 }
 `, name, rInt)
+}
+
+func testConfigForOhdearSiteModifyCheckSettings(rInt int) string {
+	name := getTestResourceName(rInt)
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  team_id  = 1910
+  url      = "https://www.test-%d.com"
+  checks   = [
+	  "uptime"
+  ]
+}`, name, rInt)
 }
 
 func testConfigForOhdearSiteUpdate(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 11
+  team_id  = 1910
   url      = "https://updated.test-%d.com"
   checks   = [
 	  "uptime"

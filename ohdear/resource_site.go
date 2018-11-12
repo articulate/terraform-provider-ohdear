@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"runtime"
 	"strconv"
 
 	"github.com/articulate/ohdear-sdk/ohdear"
@@ -39,6 +40,9 @@ func resourceOhdearSite() *schema.Resource {
 					ValidateFunc: validation.StringInSlice(ohdear.CheckTypes, false),
 				},
 			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 	}
 }
@@ -145,20 +149,26 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	runtime.Breakpoint()
 	site, _, err := client.SiteService.GetSite(id)
 	if err != nil {
 		return err
 	}
-
 	// Sync downstream checks with config
 	for _, check := range site.Checks {
 		if check.Enabled {
 			if !contains(checks, check.Type) {
-				client.CheckService.DisableCheck(check.ID)
+				_, err := client.CheckService.DisableCheck(check.ID)
+				if err != nil {
+					return err
+				}
 			}
 		} else {
 			if contains(checks, check.Type) {
-				client.CheckService.EnableCheck(check.ID)
+				_, err := client.CheckService.EnableCheck(check.ID)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
