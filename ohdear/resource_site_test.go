@@ -2,14 +2,24 @@ package ohdear
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/terraform"
 	"net/http"
 	"strconv"
 	"testing"
 
+	"github.com/hashicorp/terraform/terraform"
+
 	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 )
+
+func checkImportState(s []*terraform.InstanceState) error {
+	// Expect 1 site
+	if len(s) != 1 {
+		return fmt.Errorf("expected 1 state: %#v", s)
+	}
+
+	return nil
+}
 
 func TestAccOhdearSiteCreate(t *testing.T) {
 	ri := acctest.RandInt()
@@ -24,6 +34,24 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
+			},
+		},
+	})
+}
+
+func TestAccOhdearSiteImport(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteCreate(ri),
+			},
+			{
+				ResourceName:     fqn,
+				ImportState:      true,
+				ImportStateCheck: checkImportState,
 			},
 		},
 	})
