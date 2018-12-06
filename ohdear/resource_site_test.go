@@ -21,7 +21,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
@@ -40,7 +40,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Config: testConfigForOhdearSiteCreate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
@@ -48,7 +48,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Config: testConfigForOhdearSiteUpdate(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "1910"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
 					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
@@ -118,7 +118,7 @@ func testConfigForOhdearSiteCreate(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 1910
+  team_id  = 11
   url      = "https://www.test-%d.com"
 }
 `, name, rInt)
@@ -128,7 +128,7 @@ func testConfigForOhdearSiteUpdate(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 1910
+  team_id  = 11
   url      = "https://updated.test-%d.com"
   checks   = [
 	  "uptime"
