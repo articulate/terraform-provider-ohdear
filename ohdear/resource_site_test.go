@@ -22,7 +22,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.google.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", "https://www.google.com"),
 				),
 			},
 		},
@@ -41,7 +41,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.google.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", "https://www.google.com"),
 				),
 			},
 			{
@@ -49,7 +49,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.bing.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", "https://www.bing.com"),
 					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
@@ -121,7 +121,7 @@ resource "ohdear_site" "%s" {
   team_id  = 11
   url      = "https://www.google.com"
 }
-`, name, rInt)
+`, name)
 }
 
 func testConfigForOhdearSiteUpdate(rInt int) string {
@@ -133,5 +133,5 @@ resource "ohdear_site" "%s" {
   checks   = [
 	  "uptime"
   ]
-}`, name, rInt)
+}`, name)
 }
