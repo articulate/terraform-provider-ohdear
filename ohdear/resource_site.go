@@ -8,7 +8,6 @@ import (
 
 	"github.com/articulate/ohdear-sdk/ohdear"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceOhdearSite() *schema.Resource {
@@ -32,11 +31,36 @@ func resourceOhdearSite() *schema.Resource {
 			},
 			"checks": &schema.Schema{
 				Type:        schema.TypeSet,
-				Optional:    true,
-				Description: "Checks to include for side, default is all checks. Note: you cannot enable certificate checks on http URLs.",
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.StringInSlice(ohdear.CheckTypes, false),
+				Required:    false,
+				Description: "Checks to include for site. Note: you cannot enable certificate checks on http URLs.",
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"uptime": {
+							Type:     schema.TypeBool,
+							Required: false,
+							Default:  true,
+						},
+						"broken_links": {
+							Type:     schema.TypeBool,
+							Required: false,
+							Default:  true,
+						},
+						"mixed_content": {
+							Type:     schema.TypeBool,
+							Required: false,
+							Default:  true,
+						},
+						"certificate_health": {
+							Type:     schema.TypeBool,
+							Required: false,
+							Default:  true,
+						},
+						"certificate_transparency": {
+							Type:     schema.TypeBool,
+							Required: false,
+							Default:  true,
+						},
+					},
 				},
 			},
 		},
