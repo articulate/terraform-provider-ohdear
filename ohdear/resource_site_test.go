@@ -37,6 +37,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
 		},
@@ -139,7 +140,6 @@ func ensureSiteDestroyed(s *terraform.State) error {
 }
 
 func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckFunc {
-	runtime.Breakpoint()
 	return func(s *terraform.State) error {
 		runtime.Breakpoint()
 		client := testAccProvider.Meta().(*Config).client
@@ -153,7 +153,6 @@ func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckF
 		site, _, _ := client.SiteService.GetSite(siteID)
 
 		for _, check := range checksWanted {
-			runtime.Breakpoint()
 			enabled := isCheckEnabled(site, check)
 			if !enabled {
 				return fmt.Errorf("Check %s not enabled for site %s", check, name)
@@ -164,22 +163,8 @@ func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckF
 	}
 }
 
-// isCheckEnabled checks the site retrieved from OhDear to see whether the
-// specified check is present and enabled
-func isCheckEnabled(site *ohdear.Site, checkName string) bool {
-	for _, aCheck := range site.Checks {
-		if aCheck.Type == checkName && aCheck.Enabled == true {
-			return true
-		}
-	}
-
-	return false
-}
-
 func ensureSiteExists(name string) resource.TestCheckFunc {
-	runtime.Breakpoint()
 	return func(s *terraform.State) error {
-		runtime.Breakpoint()
 		missingErr := fmt.Errorf("resource not found: %s", name)
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -196,6 +181,18 @@ func ensureSiteExists(name string) resource.TestCheckFunc {
 
 		return nil
 	}
+}
+
+// isCheckEnabled checks the site retrieved from OhDear to see whether the
+// specified check is present and enabled
+func isCheckEnabled(site *ohdear.Site, checkName string) bool {
+	for _, aCheck := range site.Checks {
+		if aCheck.Type == checkName && aCheck.Enabled == true {
+			return true
+		}
+	}
+
+	return false
 }
 
 func doesSiteExist(strID string) (bool, error) {
