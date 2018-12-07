@@ -3,9 +3,11 @@ package ohdear
 import (
 	"fmt"
 	"net/http"
+	"runtime"
 	"strconv"
 	"testing"
 
+	"github.com/articulate/ohdear-sdk/ohdear"
 	"github.com/hashicorp/terraform/terraform"
 
 	"github.com/hashicorp/terraform/helper/acctest"
@@ -21,6 +23,7 @@ func checkImportState(s []*terraform.InstanceState) error {
 	return nil
 }
 
+// Test Basic Creation of a Site
 func TestAccOhdearSiteCreate(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
@@ -28,10 +31,29 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteCreate(ri),
+				Config: testConfigForOhdearSiteOneCheck(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureChecksEnabled(fqn, ohdear.CheckTypes),
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+				),
+			},
+		},
+	})
+}
+
+func TestAccOhDearSiteCreateThenRemoveCheckConfig(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteOneCheck(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
@@ -46,7 +68,7 @@ func TestAccOhdearSiteImport(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteCreate(ri),
+				Config: testConfigForOhdearSiteNoChecks(ri),
 			},
 			{
 				ResourceName:     fqn,
@@ -65,19 +87,27 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 		CheckDestroy: ensureSiteDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteCreate(ri),
+				Config: testConfigForOhdearSiteNoChecks(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 				),
 			},
 			{
-				Config: testConfigForOhdearSiteUpdate(ri),
+				Config: testConfigForOhdearSiteUpdatedUrl(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "11"),
+					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
+				),
+			},
+			{
+				Config: testConfigForOhdearSiteOneCheck(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
 					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
@@ -108,8 +138,48 @@ func ensureSiteDestroyed(s *terraform.State) error {
 	return nil
 }
 
-func ensureSiteExists(name string) resource.TestCheckFunc {
+func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckFunc {
+	runtime.Breakpoint()
 	return func(s *terraform.State) error {
+		runtime.Breakpoint()
+		client := testAccProvider.Meta().(*Config).client
+
+		missingErr := fmt.Errorf("resource not found: %s", name)
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return missingErr
+		}
+		siteID, _ := strconv.Atoi(rs.Primary.ID)
+		site, _, _ := client.SiteService.GetSite(siteID)
+
+		for _, check := range checksWanted {
+			runtime.Breakpoint()
+			enabled := isCheckEnabled(site, check)
+			if !enabled {
+				return fmt.Errorf("Check %s not enabled for site %s", check, name)
+			}
+		}
+
+		return nil
+	}
+}
+
+// isCheckEnabled checks the site retrieved from OhDear to see whether the
+// specified check is present and enabled
+func isCheckEnabled(site *ohdear.Site, checkName string) bool {
+	for _, aCheck := range site.Checks {
+		if aCheck.Type == checkName && aCheck.Enabled == true {
+			return true
+		}
+	}
+
+	return false
+}
+
+func ensureSiteExists(name string) resource.TestCheckFunc {
+	runtime.Breakpoint()
+	return func(s *terraform.State) error {
+		runtime.Breakpoint()
 		missingErr := fmt.Errorf("resource not found: %s", name)
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
@@ -142,22 +212,31 @@ func doesSiteExist(strID string) (bool, error) {
 	return true, nil
 }
 
-func testConfigForOhdearSiteCreate(rInt int) string {
+func testConfigForOhdearSiteNoChecks(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 11
+  team_id  = 2023
   url      = "https://www.test-%d.com"
 }
 `, name, rInt)
 }
 
-func testConfigForOhdearSiteUpdate(rInt int) string {
+func testConfigForOhdearSiteUpdatedUrl(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 11
+  team_id  = 2023
   url      = "https://updated.test-%d.com"
+}`, name, rInt)
+}
+
+func testConfigForOhdearSiteOneCheck(rInt int) string {
+	name := getTestResourceName(rInt)
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  team_id  = 2023
+  url      = "https://www.test-%d.com"
   checks   = [
 	  "uptime"
   ]

@@ -89,7 +89,10 @@ func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 		Checks: checks,
 	}
 
+	// Is checks what we expect?
 	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
+
+	// Does newSite have checks we expect?
 	if err != nil {
 		return fmt.Errorf("error creating site: %v", err)
 	}
