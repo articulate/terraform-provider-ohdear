@@ -1,5 +1,14 @@
 package ohdear
 
+func getKeysAsSlice(aMap map[string]interface{}) []string {
+	keys := make([]string, 0, len(aMap))
+	for k := range aMap {
+		keys = append(keys, k)
+	}
+
+	return keys
+}
+
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

@@ -30,38 +30,10 @@ func resourceOhdearSite() *schema.Resource {
 				Description: "ID of the team for this site",
 			},
 			"checks": &schema.Schema{
-				Type:        schema.TypeSet,
-				Required:    false,
-				Description: "Checks to include for site. Note: you cannot enable certificate checks on http URLs.",
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"uptime": {
-							Type:     schema.TypeBool,
-							Required: false,
-							Default:  true,
-						},
-						"broken_links": {
-							Type:     schema.TypeBool,
-							Required: false,
-							Default:  true,
-						},
-						"mixed_content": {
-							Type:     schema.TypeBool,
-							Required: false,
-							Default:  true,
-						},
-						"certificate_health": {
-							Type:     schema.TypeBool,
-							Required: false,
-							Default:  true,
-						},
-						"certificate_transparency": {
-							Type:     schema.TypeBool,
-							Required: false,
-							Default:  true,
-						},
-					},
-				},
+				Type:        schema.TypeMap,
+				Optional:    true,
+				Description: "Checks to include or exclude for site. Note: you cannot enable certificate checks on http URLs.",
+				Elem:        schema.TypeBool,
 			},
 		},
 		Importer: &schema.ResourceImporter{
@@ -102,21 +74,42 @@ func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, e
 func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
 
-	checks := convertInterfaceToStringArr(d.Get("checks"))
-	if len(checks) == 0 {
-		checks = ohdear.CheckTypes
+	// We want all the checks by default...
+	checksWanted := make([]string, len(ohdear.CheckTypes))
+	copy(checksWanted, ohdear.CheckTypes)
+
+	checksConfig := d.Get("checks").(map[string]interface{})
+	checksInConfig := getKeysAsSlice(d.Get("checks").(map[string]interface{}))
+	numChecks := len(checksInConfig)
+
+	// If we specified checks in the config...
+	if numChecks > 0 {
+		// Ensure all checks specified are valid check types
+		for i := 0; i < len(checksInConfig); i++ {
+			if !contains(ohdear.CheckTypes, checksInConfig[i]) {
+				return fmt.Errorf("Invalid check type %s - valid check types are 'uptime, 'broken_links', 'mixed_content', 'certificate_health' and 'certificate_transparency'", checksInConfig[i])
+			}
+		}
+		// For each check type specified, see if it is enabled
+		for i := 0; i < len(checksWanted); i++ {
+			val, ok := checksConfig[checksWanted[i]]
+
+			// If the config specifies that check but not as enabled (true)...
+			if ok && !val.(bool) {
+				// Delete that check from checks wanted
+				checksWanted = append(checksWanted[:i], checksWanted[i+1:]...)
+			}
+		}
 	}
 
 	site := &ohdear.SiteRequest{
 		URL:    d.Get("url").(string),
 		TeamID: d.Get("team_id").(int),
-		Checks: checks,
+		Checks: checksWanted,
 	}
 
-	// Is checks what we expect?
 	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
 
-	// Does newSite have checks we expect?
 	if err != nil {
 		return fmt.Errorf("error creating site: %v", err)
 	}
@@ -137,18 +130,12 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Failed retrieving Site: %v", err)
 	}
 
-	checks := []string{}
-	for _, check := range newSite.Checks {
-		if check.Enabled == true {
-			checks = append(checks, check.Type)
-		}
-	}
-
-	// Supporting defaulting to all enabled checks
-	cfgChecks := convertInterfaceToStringArr(d.Get("checks"))
-	if len(checks) != len(newSite.Checks) || len(cfgChecks) > 0 {
-		d.Set("checks", checks)
-	}
+	// checks := []string{}
+	// for _, check := range newSite.Checks {
+	// 	if check.Enabled == true {
+	// 		checks = append(checks, check.Type)
+	// 	}
+	// }
 
 	d.Set("url", newSite.URL)
 	d.Set("team_id", newSite.TeamID)

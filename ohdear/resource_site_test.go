@@ -3,7 +3,6 @@ package ohdear
 import (
 	"fmt"
 	"net/http"
-	"runtime"
 	"strconv"
 	"testing"
 
@@ -37,22 +36,23 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
-					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
 		},
 	})
 }
 
-func TestAccOhDearSiteCreateThenRemoveCheckConfig(t *testing.T) {
+// Test Basic Creation of a Site
+func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteOneCheck(ri),
+				Config: testConfigForOhdearSiteOneCheckDisabled(ri),
 				Check: resource.ComposeTestCheckFunc(
+					ensureChecksEnabled(fqn, []string{"broken_links", "mixed_content", "certificate_health", "certificate_transparency"}),
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
@@ -62,23 +62,41 @@ func TestAccOhDearSiteCreateThenRemoveCheckConfig(t *testing.T) {
 	})
 }
 
-func TestAccOhdearSiteImport(t *testing.T) {
-	ri := acctest.RandInt()
-	fqn := getTestSiteResourceFQN(ri)
-	resource.Test(t, resource.TestCase{
-		Providers: testAccProviders,
-		Steps: []resource.TestStep{
-			{
-				Config: testConfigForOhdearSiteNoChecks(ri),
-			},
-			{
-				ResourceName:     fqn,
-				ImportState:      true,
-				ImportStateCheck: checkImportState,
-			},
-		},
-	})
-}
+// func TestAccOhDearSiteCreateThenRemoveCheckConfig(t *testing.T) {
+// 	ri := acctest.RandInt()
+// 	fqn := getTestSiteResourceFQN(ri)
+// 	resource.Test(t, resource.TestCase{
+// 		Providers: testAccProviders,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testConfigForOhdearSiteOneCheck(ri),
+// 				Check: resource.ComposeTestCheckFunc(
+// 					ensureSiteExists(fqn),
+// 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
+// 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+// 				),
+// 			},
+// 		},
+// 	})
+// }
+
+// func TestAccOhdearSiteImport(t *testing.T) {
+// 	ri := acctest.RandInt()
+// 	fqn := getTestSiteResourceFQN(ri)
+// 	resource.Test(t, resource.TestCase{
+// 		Providers: testAccProviders,
+// 		Steps: []resource.TestStep{
+// 			{
+// 				Config: testConfigForOhdearSiteNoChecks(ri),
+// 			},
+// 			{
+// 				ResourceName:     fqn,
+// 				ImportState:      true,
+// 				ImportStateCheck: checkImportState,
+// 			},
+// 		},
+// 	})
+// }
 
 func TestAccOhdearSiteLifecycle(t *testing.T) {
 	ri := acctest.RandInt()
@@ -109,7 +127,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
-					resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
+					// resource.TestCheckResourceAttr(fqn, "checks.#", "1"),
 				),
 			},
 		},
@@ -141,7 +159,6 @@ func ensureSiteDestroyed(s *terraform.State) error {
 
 func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
-		runtime.Breakpoint()
 		client := testAccProvider.Meta().(*Config).client
 
 		missingErr := fmt.Errorf("resource not found: %s", name)
@@ -234,8 +251,22 @@ func testConfigForOhdearSiteOneCheck(rInt int) string {
 resource "ohdear_site" "%s" {
   team_id  = 2023
   url      = "https://www.test-%d.com"
-  checks   = [
-	  "uptime"
-  ]
+
+  checks {
+    uptime = true
+  }
+}`, name, rInt)
+}
+
+func testConfigForOhdearSiteOneCheckDisabled(rInt int) string {
+	name := getTestResourceName(rInt)
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  team_id  = 2023
+  url      = "https://www.test-%d.com"
+
+  checks {
+    uptime = false
+  }
 }`, name, rInt)
 }
