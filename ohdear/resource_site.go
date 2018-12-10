@@ -71,9 +71,10 @@ func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, e
 	return true, nil
 }
 
-func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
-	log.Println("[DEBUG] Calling Create lifecycle function for site")
-
+// determineChecksWanted returns the types of checks which are specified
+// explicitly as enabled in our config OR which are implicitly enabled
+// by virtue of their exclusion from config.
+func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
 	// We want all the checks by default...
 	checksWanted := make([]string, len(ohdear.CheckTypes))
 	copy(checksWanted, ohdear.CheckTypes)
@@ -87,7 +88,7 @@ func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 		// Ensure all checks specified are valid check types
 		for i := 0; i < len(checksInConfig); i++ {
 			if !contains(ohdear.CheckTypes, checksInConfig[i]) {
-				return fmt.Errorf("Invalid check type %s - valid check types are 'uptime, 'broken_links', 'mixed_content', 'certificate_health' and 'certificate_transparency'", checksInConfig[i])
+				return nil, fmt.Errorf("Invalid check type %s - valid check types are 'uptime, 'broken_links', 'mixed_content', 'certificate_health' and 'certificate_transparency'", checksInConfig[i])
 			}
 		}
 		// For each check type specified, see if it is enabled
@@ -100,6 +101,16 @@ func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 				checksWanted = append(checksWanted[:i], checksWanted[i+1:]...)
 			}
 		}
+	}
+
+	return checksWanted, nil
+}
+
+func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
+	log.Println("[DEBUG] Calling Create lifecycle function for site")
+	checksWanted, err := determineChecksWanted(d)
+	if err != nil {
+		return fmt.Errorf("Error Creating Site: %s", err.Error())
 	}
 
 	site := &ohdear.SiteRequest{
