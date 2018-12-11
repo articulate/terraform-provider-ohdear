@@ -34,6 +34,7 @@ func resourceOhdearSite() *schema.Resource {
 				Optional:    true,
 				Description: "Checks to include or exclude for site. Note: you cannot enable certificate checks on http URLs.",
 				Elem:        schema.TypeBool,
+				Computed:    true,
 			},
 		},
 		Importer: &schema.ResourceImporter{
@@ -141,12 +142,10 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Failed retrieving Site: %v", err)
 	}
 
-	// checks := []string{}
-	// for _, check := range newSite.Checks {
-	// 	if check.Enabled == true {
-	// 		checks = append(checks, check.Type)
-	// 	}
-	// }
+	err = d.Set("checks", checkStateMapFromSite(newSite))
+	if err != nil {
+		return fmt.Errorf("Error setting check state: %s", err.Error())
+	}
 
 	d.Set("url", newSite.URL)
 	d.Set("team_id", newSite.TeamID)
@@ -198,4 +197,14 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return resourceOhdearSiteRead(d, meta)
+}
+
+func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
+	result := make(map[string]bool, len(ohdear.CheckTypes))
+
+	for _, check := range site.Checks {
+		result[check.Type] = check.Enabled
+	}
+
+	return result
 }
