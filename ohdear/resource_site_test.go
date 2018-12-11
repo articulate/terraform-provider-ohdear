@@ -105,20 +105,19 @@ func TestAccOhDearSiteCreateAddDisableThenRemoveCheckConfig(t *testing.T) {
 					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
 				),
 			},
-		},
-		{
-			// Config: testConfigForOhdearSiteUptimeDisabled(ri),
-			Config: testConfigForOhdearSiteNoExplicitChecks(ri),
-			Check: resource.ComposeTestCheckFunc(
-				ensureSiteExists(fqn),
-				// ensureChecksEnabled(fqn, checkTypesWithoutUptime),
-				// ensureChecksDisabled(fqn, []string{"uptime"}),
-				// resource.TestCheckResourceAttr(fqn, "uptime", "false"),
-				// resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
-				// resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
-				// resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
-				// resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
-			),
+			{
+				Config: testConfigForOhdearSiteUptimeDisabled(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					ensureChecksEnabled(fqn, checkTypesWithoutUptime),
+					ensureChecksDisabled(fqn, []string{"uptime"}),
+					resource.TestCheckResourceAttr(fqn, "uptime", "false"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
+				),
+			},
 		},
 	})
 }

@@ -157,7 +157,11 @@ func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
 
 func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*Config).client
-	checks := convertInterfaceToStringArrNullable(d.Get("checks"))
+	checksWanted, err := determineChecksWanted(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing checks for site: %s", err.Error())
+	}
+
 	id, err := getSiteID(d)
 	if err != nil {
 		return err
@@ -171,14 +175,14 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Sync downstream checks with config
 	for _, check := range site.Checks {
 		if check.Enabled {
-			if !contains(checks, check.Type) {
+			if !contains(checksWanted, check.Type) {
 				_, err := client.CheckService.DisableCheck(check.ID)
 				if err != nil {
 					return err
 				}
 			}
 		} else {
-			if contains(checks, check.Type) {
+			if contains(checksWanted, check.Type) {
 				_, err := client.CheckService.EnableCheck(check.ID)
 				if err != nil {
 					return err
