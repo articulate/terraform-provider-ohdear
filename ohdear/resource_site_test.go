@@ -13,6 +13,13 @@ import (
 	"github.com/hashicorp/terraform/helper/resource"
 )
 
+var checkTypesWithoutUptime = []string{
+	"broken_links",
+	"certificate_health",
+	"mixed_content",
+	"certificate_transparency",
+}
+
 func checkImportState(s []*terraform.InstanceState) error {
 	// Expect 1 site
 	if len(s) != 1 {
@@ -30,13 +37,18 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteOneCheck(ri),
+				Config: testConfigForOhdearSiteOneExplicitCheck(ri),
 				Check: resource.ComposeTestCheckFunc(
-					ensureChecksEnabled(fqn, ohdear.CheckTypes),
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					// Checks
+					ensureChecksEnabled(fqn, ohdear.CheckTypes),
+					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
 				),
 			},
 		},
@@ -51,35 +63,65 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteOneCheckDisabled(ri),
+				Config: testConfigForOhdearSiteUptimeDisabled(ri),
 				Check: resource.ComposeTestCheckFunc(
-					ensureChecksEnabled(fqn, []string{"broken_links", "mixed_content", "certificate_health", "certificate_transparency"}),
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					ensureChecksEnabled(fqn, checkTypesWithoutUptime),
+					ensureChecksDisabled(fqn, []string{"uptime"}),
+					resource.TestCheckResourceAttr(fqn, "uptime", "false"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
 				),
 			},
 		},
 	})
 }
 
-// func TestAccOhDearSiteCreateThenRemoveCheckConfig(t *testing.T) {
-// 	ri := acctest.RandInt()
-// 	fqn := getTestSiteResourceFQN(ri)
-// 	resource.Test(t, resource.TestCase{
-// 		Providers: testAccProviders,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testConfigForOhdearSiteOneCheck(ri),
-// 				Check: resource.ComposeTestCheckFunc(
-// 					ensureSiteExists(fqn),
-// 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-// 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
-// 				),
-// 			},
-// 		},
-// 	})
-// }
+func TestAccOhDearSiteCreateAddDisableThenRemoveCheckConfig(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+				),
+			},
+			{
+				Config: testConfigForOhdearSiteOneExplicitCheck(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					ensureChecksEnabled(fqn, ohdear.CheckTypes),
+					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
+				),
+			},
+		},
+		{
+			// Config: testConfigForOhdearSiteUptimeDisabled(ri),
+			Config: testConfigForOhdearSiteNoExplicitChecks(ri),
+			Check: resource.ComposeTestCheckFunc(
+				ensureSiteExists(fqn),
+				// ensureChecksEnabled(fqn, checkTypesWithoutUptime),
+				// ensureChecksDisabled(fqn, []string{"uptime"}),
+				// resource.TestCheckResourceAttr(fqn, "uptime", "false"),
+				// resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+				// resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+				// resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+				// resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
+			),
+		},
+	})
+}
 
 // func TestAccOhdearSiteImport(t *testing.T) {
 // 	ri := acctest.RandInt()
@@ -88,7 +130,7 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 // 		Providers: testAccProviders,
 // 		Steps: []resource.TestStep{
 // 			{
-// 				Config: testConfigForOhdearSiteNoChecks(ri),
+// 				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
 // 			},
 // 			{
 // 				ResourceName:     fqn,
@@ -99,7 +141,7 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 // 	})
 // }
 
-func TestAccOhdearSiteLifecycle(t *testing.T) {
+func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
@@ -107,7 +149,7 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 		CheckDestroy: ensureSiteDestroyed,
 		Steps: []resource.TestStep{
 			{
-				Config: testConfigForOhdearSiteNoChecks(ri),
+				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
@@ -120,14 +162,44 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
+				),
+			},
+		},
+	})
+}
+
+func TestAccOhdearSiteAddExplicitChecks(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers:    testAccProviders,
+		CheckDestroy: ensureSiteDestroyed,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
+				Check: resource.ComposeTestCheckFunc(
+					ensureSiteExists(fqn),
+					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
 				),
 			},
 			{
-				Config: testConfigForOhdearSiteOneCheck(ri),
+				Config: testConfigForOhdearSiteUptimeDisabled(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "uptime", "false"),
+					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
+					resource.TestCheckResourceAttr(fqn, "mixed_content", "true"),
+					resource.TestCheckResourceAttr(fqn, "certificate_transparency", "true"),
 				),
 			},
 		},
@@ -172,6 +244,29 @@ func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckF
 		for _, check := range checksWanted {
 			enabled := isCheckEnabled(site, check)
 			if !enabled {
+				return fmt.Errorf("Check %s not enabled for site %s", check, name)
+			}
+		}
+
+		return nil
+	}
+}
+
+func ensureChecksDisabled(name string, checksWanted []string) resource.TestCheckFunc {
+	return func(s *terraform.State) error {
+		client := testAccProvider.Meta().(*Config).client
+
+		missingErr := fmt.Errorf("resource not found: %s", name)
+		rs, ok := s.RootModule().Resources[name]
+		if !ok {
+			return missingErr
+		}
+		siteID, _ := strconv.Atoi(rs.Primary.ID)
+		site, _, _ := client.SiteService.GetSite(siteID)
+
+		for _, check := range checksWanted {
+			enabled := isCheckEnabled(site, check)
+			if enabled {
 				return fmt.Errorf("Check %s not enabled for site %s", check, name)
 			}
 		}
@@ -226,7 +321,7 @@ func doesSiteExist(strID string) (bool, error) {
 	return true, nil
 }
 
-func testConfigForOhdearSiteNoChecks(rInt int) string {
+func testConfigForOhdearSiteNoExplicitChecks(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
@@ -245,7 +340,7 @@ resource "ohdear_site" "%s" {
 }`, name, rInt)
 }
 
-func testConfigForOhdearSiteOneCheck(rInt int) string {
+func testConfigForOhdearSiteOneExplicitCheck(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
@@ -256,7 +351,7 @@ resource "ohdear_site" "%s" {
 }`, name, rInt)
 }
 
-func testConfigForOhdearSiteOneCheckDisabled(rInt int) string {
+func testConfigForOhdearSiteUptimeDisabled(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
