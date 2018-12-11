@@ -128,7 +128,6 @@ func TestAccOhdearSiteLifecycle(t *testing.T) {
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
-					resource.TestCheckResourceAttr(fqn, "checks.%", "5"),
 				),
 			},
 		},
@@ -253,9 +252,7 @@ resource "ohdear_site" "%s" {
   team_id  = 2023
   url      = "https://www.test-%d.com"
 
-  checks {
-    uptime = true
-  }
+  uptime = true
 }`, name, rInt)
 }
 
@@ -266,8 +263,6 @@ resource "ohdear_site" "%s" {
   team_id  = 2023
   url      = "https://www.test-%d.com"
 
-  checks {
-    uptime = false
-  }
+  uptime = false
 }`, name, rInt)
 }

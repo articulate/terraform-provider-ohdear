@@ -29,12 +29,35 @@ func resourceOhdearSite() *schema.Resource {
 				ForceNew:    true,
 				Description: "ID of the team for this site",
 			},
-			"checks": &schema.Schema{
-				Type:        schema.TypeMap,
+			"uptime": &schema.Schema{
+				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Checks to include or exclude for site. Note: you cannot enable certificate checks on http URLs.",
-				Elem:        schema.TypeBool,
-				Computed:    true,
+				Description: "Enable/Disable uptime check",
+				Default:     true,
+			},
+			"broken_links": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable broken_links check",
+				Default:     true,
+			},
+			"certificate_health": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable certificate_health check",
+				Default:     true,
+			},
+			"mixed_content": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable mixed_content check",
+				Default:     true,
+			},
+			"certificate_transparency": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable certificate_transparency check. Cannot be used with http URLs",
+				Default:     true,
 			},
 		},
 		Importer: &schema.ResourceImporter{
@@ -72,41 +95,6 @@ func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, e
 	return true, nil
 }
 
-// determineChecksWanted returns the types of checks which are specified
-// explicitly as enabled in our config OR which are implicitly enabled
-// by virtue of their exclusion from config.
-func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
-	// We want all the checks by default...
-	checksWanted := make([]string, len(ohdear.CheckTypes))
-	copy(checksWanted, ohdear.CheckTypes)
-
-	checksConfig := d.Get("checks").(map[string]interface{})
-	checksInConfig := getKeysAsSlice(d.Get("checks").(map[string]interface{}))
-	numChecks := len(checksInConfig)
-
-	// If we specified checks in the config...
-	if numChecks > 0 {
-		// Ensure all checks specified are valid check types
-		for i := 0; i < len(checksInConfig); i++ {
-			if !contains(ohdear.CheckTypes, checksInConfig[i]) {
-				return nil, fmt.Errorf("Invalid check type %s - valid check types are 'uptime, 'broken_links', 'mixed_content', 'certificate_health' and 'certificate_transparency'", checksInConfig[i])
-			}
-		}
-		// For each check type specified, see if it is enabled
-		for i := 0; i < len(checksWanted); i++ {
-			val, ok := checksConfig[checksWanted[i]]
-
-			// If the config specifies that check but not as enabled (true)...
-			if ok && !val.(bool) {
-				// Delete that check from checks wanted
-				checksWanted = append(checksWanted[:i], checksWanted[i+1:]...)
-			}
-		}
-	}
-
-	return checksWanted, nil
-}
-
 func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
 	checksWanted, err := determineChecksWanted(d)
@@ -142,9 +130,12 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Failed retrieving Site: %v", err)
 	}
 
-	err = d.Set("checks", checkStateMapFromSite(newSite))
-	if err != nil {
-		return fmt.Errorf("Error setting check state: %s", err.Error())
+	checkStateMap := checkStateMapFromSite(newSite)
+	for _, checkType := range ohdear.CheckTypes {
+		err := d.Set(checkType, checkStateMap[checkType])
+		if err != nil {
+			return fmt.Errorf("Error setting check state: %s", err.Error())
+		}
 	}
 
 	d.Set("url", newSite.URL)
@@ -207,4 +198,21 @@ func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
 	}
 
 	return result
+}
+
+// determineChecksWanted returns the types of checks which are specified
+// explicitly as enabled in our config OR which are implicitly enabled
+// by virtue of their exclusion from config.
+func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
+	// We want all the checks by default...
+	checksWanted := make([]string, len(ohdear.CheckTypes))
+
+	for _, checkType := range ohdear.CheckTypes {
+		config := d.Get(checkType).(bool)
+		if config {
+			checksWanted = append(checksWanted, checkType)
+		}
+	}
+
+	return checksWanted, nil
 }
