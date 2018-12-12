@@ -122,23 +122,23 @@ func TestAccOhDearSiteCreateAddDisableThenRemoveCheckConfig(t *testing.T) {
 	})
 }
 
-// func TestAccOhdearSiteImport(t *testing.T) {
-// 	ri := acctest.RandInt()
-// 	fqn := getTestSiteResourceFQN(ri)
-// 	resource.Test(t, resource.TestCase{
-// 		Providers: testAccProviders,
-// 		Steps: []resource.TestStep{
-// 			{
-// 				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
-// 			},
-// 			{
-// 				ResourceName:     fqn,
-// 				ImportState:      true,
-// 				ImportStateCheck: checkImportState,
-// 			},
-// 		},
-// 	})
-// }
+func TestAccOhdearSiteImport(t *testing.T) {
+	ri := acctest.RandInt()
+	fqn := getTestSiteResourceFQN(ri)
+	resource.Test(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
+			},
+			{
+				ResourceName:     fqn,
+				ImportState:      true,
+				ImportStateCheck: checkImportState,
+			},
+		},
+	})
+}
 
 func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 	ri := acctest.RandInt()
