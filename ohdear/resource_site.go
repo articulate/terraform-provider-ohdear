@@ -8,7 +8,6 @@ import (
 
 	"github.com/articulate/ohdear-sdk/ohdear"
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func resourceOhdearSite() *schema.Resource {
@@ -30,15 +29,39 @@ func resourceOhdearSite() *schema.Resource {
 				ForceNew:    true,
 				Description: "ID of the team for this site",
 			},
-			"checks": &schema.Schema{
-				Type:        schema.TypeSet,
+			"uptime": &schema.Schema{
+				Type:        schema.TypeBool,
 				Optional:    true,
-				Description: "Checks to include for side, default is all checks. Note: you cannot enable certificate checks on http URLs.",
-				Elem: &schema.Schema{
-					Type:         schema.TypeString,
-					ValidateFunc: validation.StringInSlice(ohdear.CheckTypes, false),
-				},
+				Description: "Enable/Disable uptime check",
+				Default:     true,
 			},
+			"broken_links": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable broken_links check",
+				Default:     true,
+			},
+			"certificate_health": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable certificate_health check",
+				Default:     true,
+			},
+			"mixed_content": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable mixed_content check",
+				Default:     true,
+			},
+			"certificate_transparency": &schema.Schema{
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Description: "Enable/Disable certificate_transparency check. Cannot be used with http URLs",
+				Default:     true,
+			},
+		},
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
 		},
 	}
 }
@@ -74,19 +97,19 @@ func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, e
 
 func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
-
-	checks := convertInterfaceToStringArr(d.Get("checks"))
-	if len(checks) == 0 {
-		checks = ohdear.CheckTypes
+	checksWanted, err := determineChecksWanted(d)
+	if err != nil {
+		return fmt.Errorf("Error Creating Site: %s", err.Error())
 	}
 
 	site := &ohdear.SiteRequest{
 		URL:    d.Get("url").(string),
 		TeamID: d.Get("team_id").(int),
-		Checks: checks,
+		Checks: checksWanted,
 	}
 
 	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
+
 	if err != nil {
 		return fmt.Errorf("error creating site: %v", err)
 	}
@@ -107,17 +130,12 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 		return fmt.Errorf("Failed retrieving Site: %v", err)
 	}
 
-	checks := []string{}
-	for _, check := range newSite.Checks {
-		if check.Enabled == true {
-			checks = append(checks, check.Type)
+	checkStateMap := checkStateMapFromSite(newSite)
+	for _, checkType := range ohdear.CheckTypes {
+		err := d.Set(checkType, checkStateMap[checkType])
+		if err != nil {
+			return fmt.Errorf("Error setting check state: %s", err.Error())
 		}
-	}
-
-	// Supporting defaulting to all enabled checks
-	cfgChecks := convertInterfaceToStringArr(d.Get("checks"))
-	if len(checks) != len(newSite.Checks) || len(cfgChecks) > 0 {
-		d.Set("checks", checks)
 	}
 
 	d.Set("url", newSite.URL)
@@ -139,7 +157,11 @@ func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
 
 func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*Config).client
-	checks := convertInterfaceToStringArrNullable(d.Get("checks"))
+	checksWanted, err := determineChecksWanted(d)
+	if err != nil {
+		return fmt.Errorf("Error parsing checks for site: %s", err.Error())
+	}
+
 	id, err := getSiteID(d)
 	if err != nil {
 		return err
@@ -153,14 +175,14 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	// Sync downstream checks with config
 	for _, check := range site.Checks {
 		if check.Enabled {
-			if !contains(checks, check.Type) {
+			if !contains(checksWanted, check.Type) {
 				_, err := client.CheckService.DisableCheck(check.ID)
 				if err != nil {
 					return err
 				}
 			}
 		} else {
-			if contains(checks, check.Type) {
+			if contains(checksWanted, check.Type) {
 				_, err := client.CheckService.EnableCheck(check.ID)
 				if err != nil {
 					return err
@@ -170,4 +192,31 @@ func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
 	}
 
 	return resourceOhdearSiteRead(d, meta)
+}
+
+func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
+	result := make(map[string]bool, len(ohdear.CheckTypes))
+
+	for _, check := range site.Checks {
+		result[check.Type] = check.Enabled
+	}
+
+	return result
+}
+
+// determineChecksWanted returns the types of checks which are specified
+// explicitly as enabled in our config OR which are implicitly enabled
+// by virtue of their exclusion from config.
+func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
+	// We want all the checks by default...
+	checksWanted := make([]string, len(ohdear.CheckTypes))
+
+	for _, checkType := range ohdear.CheckTypes {
+		config := d.Get(checkType).(bool)
+		if config {
+			checksWanted = append(checksWanted, checkType)
+		}
+	}
+
+	return checksWanted, nil
 }
