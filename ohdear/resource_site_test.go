@@ -41,7 +41,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 					// Checks
 					ensureChecksEnabled(fqn, ohdear.CheckTypes),
 					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
@@ -67,7 +67,7 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 					ensureChecksEnabled(fqn, checkTypesWithoutUptime),
 					ensureChecksDisabled(fqn, []string{"uptime"}),
 					resource.TestCheckResourceAttr(fqn, "uptime", "false"),
@@ -152,7 +152,7 @@ func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://www.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 				),
 			},
 			{
@@ -160,7 +160,7 @@ func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
 					resource.TestCheckResourceAttr(fqn, "team_id", "2023"),
-					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://updated.test-%d.com", ri)),
+					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/foo/%d", ri)),
 					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
 					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
 					resource.TestCheckResourceAttr(fqn, "certificate_health", "true"),
@@ -325,7 +325,7 @@ func testConfigForOhdearSiteNoExplicitChecks(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
   team_id  = 2023
-  url      = "https://www.test-%d.com"
+  url      = "https://example.org/%d"
 }
 `, name, rInt)
 }
@@ -335,7 +335,7 @@ func testConfigForOhdearSiteUpdatedUrl(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
   team_id  = 2023
-  url      = "https://updated.test-%d.com"
+  url      = "https://example.org/foo/%d"
 }`, name, rInt)
 }
 
@@ -344,7 +344,7 @@ func testConfigForOhdearSiteOneExplicitCheck(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
   team_id  = 2023
-  url      = "https://www.test-%d.com"
+  url      = "https://example.org/%d"
 
   uptime = true
 }`, name, rInt)
@@ -355,7 +355,7 @@ func testConfigForOhdearSiteUptimeDisabled(rInt int) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
   team_id  = 2023
-  url      = "https://www.test-%d.com"
+  url      = "https://example.org/%d"
 
   uptime = false
 }`, name, rInt)
