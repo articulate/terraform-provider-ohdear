@@ -54,11 +54,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0bb347a852d34a6752975be2ddca8e93d224227edb0f1a85cb687d5d1f79cfc6"
+  digest = "1:6100e4cacb50b261b7f2f69672679910ec57f1ca8a2cbee474e8899f9f6541f5"
   name = "github.com/articulate/ohdear-sdk"
   packages = ["ohdear"]
   pruneopts = "UT"
-  revision = "16cdc69b35ce325012fa774cccec7ab0f78343cc"
+  revision = "04077c36f6f971865753810ce87d24d374031cfc"
 
 [[projects]]
   digest = "1:d364921da3ffa1989e250e4128cdb8684fed4c1131a609b5a8de9d6bf360ff0d"
@@ -300,7 +300,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:be8fd19cfd4377f82ac9215a6c5be5d36d9307b5b17465339ea089126c2c1d4b"
+  digest = "1:4a1f7d2813578be646292d73477b21dc48ca9301bfb0fc7c254fe37dde353077"
   name = "github.com/hashicorp/terraform"
   packages = [
     "config",
@@ -316,8 +316,6 @@
     "helper/logging",
     "helper/resource",
     "helper/schema",
-    "helper/structure",
-    "helper/validation",
     "httpclient",
     "moduledeps",
     "plugin",
@@ -646,7 +644,6 @@
     "github.com/hashicorp/terraform/helper/acctest",
     "github.com/hashicorp/terraform/helper/resource",
     "github.com/hashicorp/terraform/helper/schema",
-    "github.com/hashicorp/terraform/helper/validation",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
   ]
