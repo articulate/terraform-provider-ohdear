@@ -16,6 +16,7 @@ func resourceOhdearSite() *schema.Resource {
 		Read:   resourceOhdearSiteRead,
 		Delete: resourceOhdearSiteDelete,
 		Update: resourceOhdearSiteUpdate,
+		Exists: resourceOhdearSiteExists,
 		Schema: map[string]*schema.Schema{
 			"url": &schema.Schema{
 				Type:        schema.TypeString,
