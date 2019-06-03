@@ -40,21 +40,14 @@ OHDEAR_TOKEN=<OhDear api token>
 OHDEAR_BASE_URL="https://ohdear.app"
 ```
 
-Building The Provider
----------------------
+## Building The Provider
 
-Clone repository to: `$GOPATH/src/github.com/terraform-providers/terraform-provider-ohdear`
-
-```sh
-$ mkdir -p $GOPATH/src/github.com/terraform-providers; cd $GOPATH/src/github.com/terraform-providers
-$ git clone git@github.com:terraform-providers/terraform-provider-ohdear
-```
-
+Simply clone the provider and run `make`. The `make` command combines `make deps && make build-plugins`, which ensures all dependencies are pulled down, builds binaries for Linux, OSX, and Windows and drops them in the default unix terraform plugin directory `~/.terraform.d/plugins`. Use `make build` for only a single binary for your host OS in your current directory.
 
 ```sh
-$ cd $GOPATH/src/github.com/terraform-providers/terraform-provider-ohdear
-$ go get -v
-$ make build
+$ go get -d github.com/articulate/terraform-provider-ohdear
+$ cd $GOPATH/src/github.com/articulate/terraform-provider-ohdear
+$ make
 ```
 
 For local development, I've found the below commands helpful. Run them from inside the terraform-provider-ohdear directory
