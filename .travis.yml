@@ -1,10 +1,9 @@
 sudo: required
 language: go
 go:
-- 1.10.x
+- 1.12.x
 - tip
 install:
-- make deps
 - make testacc
 script:
 - make build
