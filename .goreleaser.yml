@@ -1,0 +1,32 @@
+# all available options: https://goreleaser.com/customization/
+project_name: terraform-provider-ohdear
+
+before:
+  hooks: []
+
+builds:
+- binary: "terraform-provider-ohdear_v{{.Version}}_x4"
+  env:
+  - CGO_ENABLED=0
+  goos:
+  - darwin
+  - windows
+  - linux
+  goarch:
+  - amd64
+  ldflags: []
+
+archive:
+  name_template: "{{.ProjectName}}-{{.Os}}-{{.Arch}}"
+  format_overrides:
+  - goos: windows
+    format: zip
+  - goos: darwin
+    format: zip
+  - goos: linux
+    format: zip
+  files:
+    - none*  # only package the binary - not defaults: readme, license, changelog
+
+checksum:
+  name_template: 'SHA256SUMS.txt'

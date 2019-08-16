@@ -2,6 +2,8 @@ package ohdear
 
 import (
 	"github.com/articulate/ohdear-sdk/ohdear"
+	"github.com/hashicorp/go-cleanhttp"
+	"github.com/hashicorp/terraform/helper/logging"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
@@ -30,7 +32,9 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	apiToken := d.Get("api_token").(string)
 	baseURL := d.Get("api_url").(string)
-	client, err := ohdear.NewClient(baseURL, apiToken)
+	httpClient := cleanhttp.DefaultClient()
+	httpClient.Transport = logging.NewTransport("Oh Dear SDK", httpClient.Transport)
+	client, err := ohdear.NewClient(baseURL, apiToken, httpClient)
 	if err != nil {
 		return nil, err
 	}
