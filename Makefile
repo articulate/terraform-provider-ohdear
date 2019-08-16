@@ -32,14 +32,14 @@ build: fmtcheck
 build-plugins: fmtcheck
 	@mkdir -p ~/.terraform.d/plugins/
 	gox -osarch="linux/amd64 darwin/amd64 windows/amd64" \
-	  -output="${HOME}/.terraform.d/plugins/{{.OS}}_{{.Arch}}/terraform-provider-ohdear_${VERSION}_x5" .
+	  -output="${HOME}/.terraform.d/plugins/{{.OS}}_{{.Arch}}/terraform-provider-ohdear_${VERSION}_x4" .
 
 ship: build-plugins
 	exists=$$(aws s3api list-objects --bucket articulate-terraform-providers --profile prod --prefix terraform-provider-ohdear --query Contents[].Key | jq 'contains(["${VERSION}"])' ) \
 	&& if [ $$exists == "true" ]; then \
 	  echo "[ERROR] terraform-provider-ohdear_${VERSION} already exists in s3://${TERRAFORM_PLUGINS_BUCKET} - don't forget to bump the version."; else \
 		echo "copying terraform-provider-ohdear_${VERSION} to s3://${TERRAFORM_PLUGINS_BUCKET}"; \
-	  aws s3 cp ~/.terraform.d/plugins/linux_amd64/terraform-provider-ohdear_${VERSION}_x5  s3://${TERRAFORM_PLUGINS_BUCKET}/ --profile ${TERRAFORM_PLUGINS_PROFILE}; \
+	  aws s3 cp ~/.terraform.d/plugins/linux_amd64/terraform-provider-ohdear_${VERSION}_x4  s3://${TERRAFORM_PLUGINS_BUCKET}/ --profile ${TERRAFORM_PLUGINS_PROFILE}; \
 	fi
 
 test: fmtcheck
