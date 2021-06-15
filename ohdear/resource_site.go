@@ -209,8 +209,7 @@ func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
 // explicitly as enabled in our config OR which are implicitly enabled
 // by virtue of their exclusion from config.
 func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
-	// We want all the checks by default...
-	checksWanted := make([]string, len(ohdear.CheckTypes))
+	checksWanted := []string{}
 
 	for _, checkType := range ohdear.CheckTypes {
 		config := d.Get(checkType).(bool)
