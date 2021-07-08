@@ -40,7 +40,9 @@ func checkImportState(s []*terraform.InstanceState) error {
 func TestAccOhdearSiteCreate(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
+
 	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -67,6 +69,7 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -92,6 +95,7 @@ func TestAccOhDearSiteCreateAddDisableThenRemoveCheckConfig(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -133,6 +137,7 @@ func TestAccOhdearSiteImport(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
+		PreCheck:  func() { testAccPreCheck(t) },
 		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
@@ -150,9 +155,10 @@ func TestAccOhdearSiteImport(t *testing.T) {
 func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
+
 	resource.Test(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: ensureSiteDestroyed,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
@@ -183,8 +189,8 @@ func TestAccOhdearSiteAddExplicitChecks(t *testing.T) {
 	ri := acctest.RandInt()
 	fqn := getTestSiteResourceFQN(ri)
 	resource.Test(t, resource.TestCase{
-		Providers:    testAccProviders,
-		CheckDestroy: ensureSiteDestroyed,
+		PreCheck:  func() { testAccPreCheck(t) },
+		Providers: testAccProviders,
 		Steps: []resource.TestStep{
 			{
 				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
@@ -212,28 +218,21 @@ func TestAccOhdearSiteAddExplicitChecks(t *testing.T) {
 	})
 }
 
+func testAccPreCheck(t *testing.T) {
+	if v := os.Getenv("OHDEAR_TOKEN"); v == "" {
+		t.Fatal("OHDEAR_TOKEN must be set for acceptance tests")
+	}
+	if teamID == "" {
+		t.Fatal("OHDEAR_TEAM_ID must be set for acceptance tests")
+	}
+}
+
 func getTestSiteResourceFQN(ri int) string {
 	return fmt.Sprintf("ohdear_site.%s", getTestResourceName(ri))
 }
 
 func getTestResourceName(ri int) string {
 	return fmt.Sprintf("testAcc-%d", ri)
-}
-
-func ensureSiteDestroyed(s *terraform.State) error {
-	for _, r := range s.RootModule().Resources {
-		exists, err := doesSiteExist(r.Primary.ID)
-		if exists {
-			if err != nil {
-				return err
-			}
-
-			return fmt.Errorf("Test site still exists, beware of the danglers")
-		}
-		return err
-	}
-
-	return nil
 }
 
 func ensureChecksEnabled(name string, checksWanted []string) resource.TestCheckFunc {
