@@ -18,43 +18,43 @@ func resourceOhdearSite() *schema.Resource {
 		Update: resourceOhdearSiteUpdate,
 		Exists: resourceOhdearSiteExists,
 		Schema: map[string]*schema.Schema{
-			"url": &schema.Schema{
+			"url": {
 				Type:        schema.TypeString,
 				Required:    true,
 				ForceNew:    true,
 				Description: "URL of the site to be checked",
 			},
-			"team_id": &schema.Schema{
+			"team_id": {
 				Type:        schema.TypeInt,
 				Required:    true,
 				ForceNew:    true,
 				Description: "ID of the team for this site",
 			},
-			"uptime": &schema.Schema{
+			"uptime": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enable/Disable uptime check",
 				Default:     true,
 			},
-			"broken_links": &schema.Schema{
+			"broken_links": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enable/Disable broken_links check",
 				Default:     true,
 			},
-			"certificate_health": &schema.Schema{
+			"certificate_health": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enable/Disable certificate_health check",
 				Default:     true,
 			},
-			"mixed_content": &schema.Schema{
+			"mixed_content": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enable/Disable mixed_content check",
 				Default:     true,
 			},
-			"certificate_transparency": &schema.Schema{
+			"certificate_transparency": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				Description: "Enable/Disable certificate_transparency check. Cannot be used with http URLs",
@@ -139,10 +139,10 @@ func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
 		}
 	}
 
-	d.Set("url", newSite.URL)
-	d.Set("team_id", newSite.TeamID)
-
-	return nil
+	if err := d.Set("url", newSite.URL); err != nil {
+		return err
+	}
+	return d.Set("team_id", newSite.TeamID)
 }
 
 func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
