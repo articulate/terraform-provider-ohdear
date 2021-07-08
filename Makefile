@@ -1,88 +1,57 @@
-SWEEP?=global
+PKG_LIST := $(shell go list ./... | grep -v /vendor/)
 
-# If test pkgs is not set find/use all non-vendor packages
-ifndef TEST_PKGS
-	TEST_PKGS := $$(go list ./... |grep -v 'vendor')
-endif
+help:
+	@echo "+ $@"
+	@grep -hE '(^[a-zA-Z0-9\._-]+:.*?##.*$$)|(^##)' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}{printf "\033[32m%-30s\033[0m %s\n", $$1, $$2}' | sed -e 's/\[32m## /[33m/'
+.PHONY: help
 
-# Expression to match against tests
-# go test -run <filter>
-# e.g. Iden will run all TestAccIdentity tests
-ifdef TEST_FILTER
-	TEST_FILTER := -run $(TEST_FILTER)
-endif
+##
+## Build
+## ---------------------------------------------------------------------------
 
-# Pass additional go test <args> via TEST_ARGS
-# TEST_ARGS
+build: ## Build for current OS/Arch
+	@echo "+ $@"
+	@goreleaser build --rm-dist --skip-validate --single-target
+.PHONY: build
 
-export GO111MODULE=on
+all: ## Build all OS/Arch
+	@echo "+ $@"
+	@goreleaser build --rm-dist --skip-validate
+.PHONY: all
 
-# Last tagged version
-VERSION = $$(git tag --sort=v:refname | tail -1)
+##
+## Development
+## ---------------------------------------------------------------------------
 
-default: build-plugins
+mod: ## Make sure go.mod is up to date
+	@echo "+ $@"
+	@go mod tidy
+.PHONY: mod
 
-# Builds a binary for current OS and Arch
-build: fmtcheck
-	@mkdir -p ~/.terraform.d/plugins/
-	@go build -o terraform-provider-ohdear_${VERSION}
-
-# Builds a binary for Linux, Windows, and OSX and installs it in the default terraform plugins directory
-build-plugins: fmtcheck
-	@mkdir -p ~/.terraform.d/plugins/
-	gox -osarch="linux/amd64 darwin/amd64 windows/amd64" \
-	  -output="${HOME}/.terraform.d/plugins/{{.OS}}_{{.Arch}}/terraform-provider-ohdear_${VERSION}_x4" .
-
-ship: build-plugins
-	exists=$$(aws s3api list-objects --bucket articulate-terraform-providers --profile prod --prefix terraform-provider-ohdear --query Contents[].Key | jq 'contains(["${VERSION}"])' ) \
-	&& if [ $$exists == "true" ]; then \
-	  echo "[ERROR] terraform-provider-ohdear_${VERSION} already exists in s3://${TERRAFORM_PLUGINS_BUCKET} - don't forget to bump the version."; else \
-		echo "copying terraform-provider-ohdear_${VERSION} to s3://${TERRAFORM_PLUGINS_BUCKET}"; \
-	  aws s3 cp ~/.terraform.d/plugins/linux_amd64/terraform-provider-ohdear_${VERSION}_x4  s3://${TERRAFORM_PLUGINS_BUCKET}/ --profile ${TERRAFORM_PLUGINS_PROFILE}; \
-	fi
-
-test: fmtcheck
-	go test -i $(TEST_PKGS) || exit 1
-	echo $(TEST_PKGS) | \
-		xargs -t -n4 go test $(TEST_ARGS) $(TEST_FILTER) \
-			-timeout=30s -parallel=4
-
-testacc: fmtcheck
-	TF_ACC=1 go test -v $(filter-out -v,$(TEST_ARGS)) $(TEST_FILTER) \
-		$(TEST_PKGS) -timeout 120m
-
-# Sweeps up leaked dangling resources
-sweep:
-	@echo "WARNING: This will destroy resources. Use only in development accounts."
-	go test $(TEST_PKGS) -v -sweep=$(SWEEP) $(SWEEPARGS)
-
-vet:
-	@echo "go vet ."
-	@go vet $$(go list ./... | grep -v vendor/) ; if [ $$? -eq 1 ]; then \
-		echo ""; \
-		echo "Vet found suspicious constructs. Please check the reported constructs"; \
-		echo "and fix them if necessary before submitting the code for review."; \
-		exit 1; \
-	fi
-
-fmt:
-	@golangci-lint run --fix
-
-fmtcheck:
+lint: ## Lint Go code
+	@echo "+ $@"
 	@golangci-lint run
+.PHONY: lint
 
-vendor-status:
-	@govendor status
+fix: ## Try to fix lint issues
+	@echo "+ $@"
+	@golangci-lint run --fix
+.PHONY: fix
 
-test-compile:
-	@if [ "$(TEST_PKGS)" = "./..." ]; then \
-		echo "ERROR: Set TEST to a specific package. For example,"; \
-		echo "  make test-compile TEST=./aws"; \
-		exit 1; \
-	fi
-	go test -c $(TEST_PKGS) $(TEST_ARGS)
+##
+## Tests
+## ---------------------------------------------------------------------------
 
-.PHONY: build test testacc vet fmt fmtcheck vendor-status test-compile
+test: ## Run tests
+	@echo "+ $@"
+	@go test ${PKG_LIST} -v $(TESTARGS) -parallel=4
+.PHONY: test
+
+testacc: ## Run acceptance tests
+	@echo "+ $@"
+	@TF_ACC=1 go test ${PKG_LIST} -v -cover $(TESTARGS) -timeout 120m
+.PHONY: testacc
+
 
 # Print the value of any variable as make print-VAR
 print-%  : ; @echo $* = $($*)
