@@ -15,7 +15,6 @@ endif
 # Pass additional go test <args> via TEST_ARGS
 # TEST_ARGS
 
-GOFMT_FILES := $(filter-out vendor, $(wildcard **/*.go))
 export GO111MODULE=on
 
 # Last tagged version
@@ -67,13 +66,10 @@ vet:
 	fi
 
 fmt:
-	gofmt -w $(GOFMT_FILES)
+	@golangci-lint run --fix
 
 fmtcheck:
-	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
-
-errcheck:
-	@sh -c "'$(CURDIR)/scripts/errcheck.sh'"
+	@golangci-lint run
 
 vendor-status:
 	@govendor status
@@ -86,7 +82,7 @@ test-compile:
 	fi
 	go test -c $(TEST_PKGS) $(TEST_ARGS)
 
-.PHONY: build test testacc vet fmt fmtcheck errcheck vendor-status test-compile
+.PHONY: build test testacc vet fmt fmtcheck vendor-status test-compile
 
 # Print the value of any variable as make print-VAR
 print-%  : ; @echo $* = $($*)

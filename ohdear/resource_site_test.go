@@ -3,6 +3,7 @@ package ohdear
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 	"testing"
 
@@ -18,6 +19,12 @@ var checkTypesWithoutUptime = []string{
 	"certificate_health",
 	"mixed_content",
 	"certificate_transparency",
+}
+
+var teamID string
+
+func init() {
+	teamID = os.Getenv("OHDEAR_TEAM_ID")
 }
 
 func checkImportState(s []*terraform.InstanceState) error {
@@ -40,7 +47,7 @@ func TestAccOhdearSiteCreate(t *testing.T) {
 				Config: testConfigForOhdearSiteOneExplicitCheck(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "2840"),
+					resource.TestCheckResourceAttr(fqn, "team_id", teamID),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 					// Checks
 					ensureChecksEnabled(fqn, ohdear.CheckTypes),
@@ -66,7 +73,7 @@ func TestAccOhdearSiteCreateWithDisabledCheck(t *testing.T) {
 				Config: testConfigForOhdearSiteUptimeDisabled(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "2840"),
+					resource.TestCheckResourceAttr(fqn, "team_id", teamID),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 					ensureChecksEnabled(fqn, checkTypesWithoutUptime),
 					ensureChecksDisabled(fqn, []string{"uptime"}),
@@ -151,15 +158,15 @@ func TestAccOhdearSiteUpdateUrl(t *testing.T) {
 				Config: testConfigForOhdearSiteNoExplicitChecks(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "2840"),
+					resource.TestCheckResourceAttr(fqn, "team_id", teamID),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/%d", ri)),
 				),
 			},
 			{
-				Config: testConfigForOhdearSiteUpdatedUrl(ri),
+				Config: testConfigForOhdearSiteUpdatedURL(ri),
 				Check: resource.ComposeTestCheckFunc(
 					ensureSiteExists(fqn),
-					resource.TestCheckResourceAttr(fqn, "team_id", "2840"),
+					resource.TestCheckResourceAttr(fqn, "team_id", teamID),
 					resource.TestCheckResourceAttr(fqn, "url", fmt.Sprintf("https://example.org/foo/%d", ri)),
 					resource.TestCheckResourceAttr(fqn, "uptime", "true"),
 					resource.TestCheckResourceAttr(fqn, "broken_links", "true"),
@@ -218,6 +225,7 @@ func ensureSiteDestroyed(s *terraform.State) error {
 		exists, err := doesSiteExist(r.Primary.ID)
 		if exists {
 			if err != nil {
+				return err
 			}
 
 			return fmt.Errorf("Test site still exists, beware of the danglers")
@@ -324,39 +332,39 @@ func testConfigForOhdearSiteNoExplicitChecks(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 2840
+  team_id  = %s
   url      = "https://example.org/%d"
 }
-`, name, rInt)
+`, name, teamID, rInt)
 }
 
-func testConfigForOhdearSiteUpdatedUrl(rInt int) string {
+func testConfigForOhdearSiteUpdatedURL(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 2840
+  team_id  = %s
   url      = "https://example.org/foo/%d"
-}`, name, rInt)
+}`, name, teamID, rInt)
 }
 
 func testConfigForOhdearSiteOneExplicitCheck(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 2840
+  team_id  = %s
   url      = "https://example.org/%d"
 
   uptime = true
-}`, name, rInt)
+}`, name, teamID, rInt)
 }
 
 func testConfigForOhdearSiteUptimeDisabled(rInt int) string {
 	name := getTestResourceName(rInt)
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id  = 2840
+  team_id  = %s
   url      = "https://example.org/%d"
 
   uptime = false
-}`, name, rInt)
+}`, name, teamID, rInt)
 }

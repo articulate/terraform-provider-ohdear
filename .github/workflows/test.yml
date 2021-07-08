@@ -1,0 +1,54 @@
+name: Test
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'README.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.16
+      - run: go build -v .
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: golangci/golangci-lint-action@v2
+
+  # test:
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       terraform:
+  #         - '0.13.7'
+  #         - '0.14.11'
+  #         - '0.15.5'
+  #         - '1.0.0'
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - uses: actions/setup-go@v2
+  #       with:
+  #         go-version: 1.16
+  #     - uses: actions/cache@v2
+  #       with:
+  #         path: ~/go/pkg/mod
+  #         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-go-
+  #     - run: make testacc
+  #       env:
+  #         TF_ACC_TERRAFORM_VERSION: ${{ matrix.terraform }}

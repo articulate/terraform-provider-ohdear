@@ -1,0 +1,23 @@
+linters:
+  enable:
+    - gofmt
+    - revive
+    - gocyclo
+    - misspell
+    - whitespace
+    - goimports
+    - gofmt
+
+linters-settings:
+  gocyclo:
+    min-complexity: 10
+  gosimple:
+    go: "1.16"
+  staticcheck:
+    go: "1.16"
+  unused:
+    go: "1.16"
+
+issues:
+  exclude:
+    - exported (method|function|type|const) (.+) should have comment \(or a comment on this block\) or be unexported
