@@ -1,107 +1,43 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/articulate/terraform-provider-ohdear)](https://goreportcard.com/report/github.com/articulate/terraform-provider-ohdear)
-Terraform Provider OhDear
-==================
+# Terraform Provider OhDear
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+A Terraform Provider for [Oh Dear](https://ohdear.app/).
 
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
+## Usage
 
-Maintainers
------------
+The provider requires an `api_token` (or `OHDEAR_TOKEN` environment variable) and
+an optional `api_url` (`OHDEAR_BASE_URL` environment variable, defaults to "https://ohdear.app").
 
-This provider plugin is maintained by the Terraform team at [Articulate](https://articulate.com/).
-
-Requirements
-------------
-
--	[Terraform](https://www.terraform.io/downloads.html) 0.12.x
--	[Go](https://golang.org/doc/install) 1.12 (to build the provider plugin)
-
-Usage
----------------------
-
-This plugin requires two inputs to run: the OhDear organization name and the OhDear api token. The OhDear base url is not required and will default to "OhDear.com" if left out.
-
-You can specify the inputs in your tf plan:
-
-```
+```terraform
 provider "ohdear" {
   api_token = "XXXX"
-  api_url   = "https://ohdear.app"
+  api_url   = "https://ohdear.app" # optional
 }
 ```
 
-OR you can specify environment variables:
+To add a site to Oh Dear, create a `ohdear_site` resource.
 
-```
-OHDEAR_TOKEN=<OhDear api token>
-OHDEAR_BASE_URL="https://ohdear.app"
-```
-
-## Building The Provider
-
-Simply clone the provider and run `make`. The `make` command combines `make deps && make build-plugins`, which ensures all dependencies are pulled down, builds binaries for Linux, OSX, and Windows and drops them in the default unix terraform plugin directory `~/.terraform.d/plugins`. Use `make build` for only a single binary for your host OS in your current directory.
-
-```sh
-$ go get -d github.com/articulate/terraform-provider-ohdear
-$ cd $GOPATH/src/github.com/articulate/terraform-provider-ohdear
-$ make
-```
-
-For local development, I've found the below commands helpful. Run them from inside the terraform-provider-ohdear directory
-
-```sh
-$ go build -o .terraform/plugins/$GOOS_$GOARCH/terraform-provider-ohdear
-$ terraform init -plugin-dir=.terraform/plugins/$GOOS_$GOARCH
-```
-
-Using the provider
-----------------------
-
-Example terraform plan:
-
-```
-provider "ohdear" {
-  api_token = "XXXX"
-  api_url   = "https://ohdear.app"
-}
-
+```terraform
 resource "ohdear_site" "fnord" {
-  team_id = 1337
+  team_id = 1234
   url     = "https://site.iwanttomonitor.com"
 }
 ```
 
-Developing the Provider
----------------------------
+By default, all site checks are enabled. You can turn off checks by setting them
+to false.
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.8+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
-
-To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
-
-```sh
-$ make bin
-...
-$ $GOPATH/bin/terraform-provider-ohdear
-...
+```terraform
+resource "ohdear_site" "fnord" {
+  team_id                  = 1234
+  url                      = "https://site.iwanttomonitor.com"
+  broken_links             = false
+  certificate_health       = false
+  certificate_transparency = false
+  mixed_content            = false
+}
 ```
 
-In order to test the provider, you can simply run `make test`.
+## Requirements
 
-```sh
-$ make test
-```
-
-In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```sh
-$ make testacc
-```
-
-### Best Practices
-
-We are striving to build a provider that is easily consumable and eventually can pass the HashiCorp community audit. In order to achieve this end we must ensure we are following HashiCorp's best practices. This can be derived either from their [documentation on the matter](https://www.terraform.io/docs/extend/best-practices/detecting-drift.html), or by using a simple well written [example as our template](https://github.com/terraform-providers/terraform-provider-datadog).
+* [Terraform](https://www.terraform.io/downloads.html) >= 0.12.x
+* [Go](https://golang.org/doc/install) 1.16 (for development)
