@@ -3,9 +3,9 @@ package ohdear
 import (
 	"github.com/articulate/ohdear-sdk/ohdear"
 	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/terraform/helper/logging"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/logging"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func Provider() terraform.ResourceProvider {

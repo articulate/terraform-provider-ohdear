@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/articulate/ohdear-sdk/ohdear"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func resourceOhdearSite() *schema.Resource {
