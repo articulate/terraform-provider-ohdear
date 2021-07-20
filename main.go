@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/articulate/terraform-provider-ohdear/ohdear"
-	"github.com/hashicorp/terraform/plugin"
+	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 )
 
 func main() {
