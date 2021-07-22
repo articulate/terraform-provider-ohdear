@@ -34,6 +34,12 @@ install: build ## Install to global Terraform plugin directory
 ## Development
 ## ---------------------------------------------------------------------------
 
+dev: ## Start development environment via Docker
+	@echo "+ $@"
+	@docker build -t ${NAMESPACE}/terraform-provider-${NAME} .
+	@docker run --rm -it -v $(PWD):/go/src/github.com/${NAMESPACE}/terraform-provider-${NAME} -w /go/src/github.com/${NAMESPACE}/terraform-provider-${NAME} ${NAMESPACE}/terraform-provider-${NAME}
+.PHONY: dev
+
 mod: ## Make sure go.mod is up to date
 	@echo "+ $@"
 	@go mod tidy
