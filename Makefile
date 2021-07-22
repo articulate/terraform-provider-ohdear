@@ -1,4 +1,9 @@
 PKG_LIST := $(shell go list ./... | grep -v /vendor/)
+OS_ARCH=$(shell go env GOOS)_$(shell go env GOARCH)
+HOSTNAME=registry.terraform.io
+NAMESPACE=articulate
+NAME=ohdear
+VERSION=$(shell git describe --abbrev=0 | sed 's/^v//')
 
 help:
 	@echo "+ $@"
@@ -18,6 +23,12 @@ all: ## Build all OS/Arch
 	@echo "+ $@"
 	@goreleaser build --rm-dist --skip-validate
 .PHONY: all
+
+install: build ## Install to global Terraform plugin directory
+	@echo "+ $@"
+	@mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	@cp dist/terraform-provider-${NAME}_${OS_ARCH}/terraform-provider-* ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+.PHONY: install
 
 ##
 ## Development
