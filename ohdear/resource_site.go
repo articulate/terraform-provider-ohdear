@@ -1,22 +1,22 @@
 package ohdear
 
 import (
+	"context"
 	"fmt"
 	"log"
-	"net/http"
 	"strconv"
 
 	"github.com/articulate/ohdear-sdk/ohdear"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func resourceOhdearSite() *schema.Resource {
 	return &schema.Resource{
-		Create: resourceOhdearSiteCreate,
-		Read:   resourceOhdearSiteRead,
-		Delete: resourceOhdearSiteDelete,
-		Update: resourceOhdearSiteUpdate,
-		Exists: resourceOhdearSiteExists,
+		CreateContext: resourceOhdearSiteCreate,
+		ReadContext:   resourceOhdearSiteRead,
+		DeleteContext: resourceOhdearSiteDelete,
+		UpdateContext: resourceOhdearSiteUpdate,
 		Schema: map[string]*schema.Schema{
 			"url": {
 				Type:        schema.TypeString,
@@ -62,7 +62,7 @@ func resourceOhdearSite() *schema.Resource {
 			},
 		},
 		Importer: &schema.ResourceImporter{
-			State: schema.ImportStatePassthrough,
+			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
@@ -72,127 +72,108 @@ func getSiteID(d *schema.ResourceData) (int, error) {
 	if err != nil {
 		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %v", err)
 	}
-
 	return id, err
 }
 
-func resourceOhdearSiteExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	client := meta.(*Config).client
-	log.Printf("[DEBUG] Calling Exists lifecycle function for site %s\n", d.Id())
-
-	id, err := getSiteID(d)
-	if err != nil {
-		return false, err
-	}
-
-	if _, res, err := client.SiteService.GetSite(id); err != nil {
-		if res.StatusCode == http.StatusNotFound {
-			return false, nil
-		}
-
-		return false, err
-	}
-
-	return true, nil
-}
-
-func resourceOhdearSiteCreate(d *schema.ResourceData, meta interface{}) error {
+func resourceOhdearSiteCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
-	checksWanted, err := determineChecksWanted(d)
-	if err != nil {
-		return fmt.Errorf("Error Creating Site: %s", err.Error())
-	}
 
-	site := &ohdear.SiteRequest{
+	client := meta.(*Config).client
+	site, _, err := client.SiteService.CreateSite(&ohdear.SiteRequest{
 		URL:    d.Get("url").(string),
 		TeamID: d.Get("team_id").(int),
-		Checks: checksWanted,
-	}
-
-	newSite, _, err := meta.(*Config).client.SiteService.CreateSite(site)
+		Checks: checksWanted(d),
+	})
 
 	if err != nil {
-		return fmt.Errorf("error creating site: %v", err)
+		return diagErrorf(err, "Could not add site to Oh Dear")
 	}
 
-	d.SetId(strconv.Itoa(newSite.ID))
-	return resourceOhdearSiteRead(d, meta)
+	d.SetId(strconv.Itoa(site.ID))
+
+	return resourceOhdearSiteRead(ctx, d, meta)
 }
 
-func resourceOhdearSiteRead(d *schema.ResourceData, meta interface{}) error {
+func resourceOhdearSiteRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Read lifecycle function for site %s\n", d.Id())
+
 	id, err := getSiteID(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	newSite, _, err := meta.(*Config).client.SiteService.GetSite(id)
+	client := meta.(*Config).client
+	site, _, err := client.SiteService.GetSite(id)
 	if err != nil {
-		return fmt.Errorf("Failed retrieving Site: %v", err)
+		return diagErrorf(err, "Could not find site in Oh Dear")
 	}
 
-	checkStateMap := checkStateMapFromSite(newSite)
+	checkStateMap := checkStateMapFromSite(site)
 	for _, checkType := range ohdear.CheckTypes {
-		err := d.Set(checkType, checkStateMap[checkType])
-		if err != nil {
-			return fmt.Errorf("Error setting check state: %s", err.Error())
+		if err := d.Set(checkType, checkStateMap[checkType]); err != nil {
+			return diag.FromErr(err)
 		}
 	}
 
-	if err := d.Set("url", newSite.URL); err != nil {
-		return err
+	if err := d.Set("url", site.URL); err != nil {
+		return diag.FromErr(err)
 	}
-	return d.Set("team_id", newSite.TeamID)
+
+	if err := d.Set("team_id", site.TeamID); err != nil {
+		return diag.FromErr(err)
+	}
+
+	return nil
 }
 
-func resourceOhdearSiteDelete(d *schema.ResourceData, meta interface{}) error {
+func resourceOhdearSiteDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Delete lifecycle function for site %s\n", d.Id())
+
 	id, err := getSiteID(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
-	_, err = meta.(*Config).client.SiteService.DeleteSite(id)
-	return err
+	if _, err = meta.(*Config).client.SiteService.DeleteSite(id); err != nil {
+		return diagErrorf(err, "Could not remove site from Oh Dear")
+	}
+
+	return nil
 }
 
-func resourceOhdearSiteUpdate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*Config).client
-	checksWanted, err := determineChecksWanted(d)
-	if err != nil {
-		return fmt.Errorf("Error parsing checks for site: %s", err.Error())
-	}
+func resourceOhdearSiteUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Printf("[DEBUG] Calling Update lifecycle function for site %s\n", d.Id())
 
 	id, err := getSiteID(d)
 	if err != nil {
-		return err
+		return diag.FromErr(err)
 	}
 
+	client := meta.(*Config).client
 	site, _, err := client.SiteService.GetSite(id)
 	if err != nil {
-		return err
+		return diagErrorf(err, "Could not find site in Oh Dear")
 	}
 
 	// Sync downstream checks with config
+	checksWanted := checksWanted(d)
 	for _, check := range site.Checks {
 		if check.Enabled {
 			if !contains(checksWanted, check.Type) {
-				_, err := client.CheckService.DisableCheck(check.ID)
-				if err != nil {
-					return err
+				if _, err := client.CheckService.DisableCheck(check.ID); err != nil {
+					return diagErrorf(err, "Could not remove check to site in Oh Dear")
 				}
 			}
 		} else {
 			if contains(checksWanted, check.Type) {
-				_, err := client.CheckService.EnableCheck(check.ID)
-				if err != nil {
-					return err
+				if _, err := client.CheckService.EnableCheck(check.ID); err != nil {
+					return diagErrorf(err, "Could not add check to site in Oh Dear")
 				}
 			}
 		}
 	}
 
-	return resourceOhdearSiteRead(d, meta)
+	return resourceOhdearSiteRead(ctx, d, meta)
 }
 
 func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
@@ -205,18 +186,13 @@ func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
 	return result
 }
 
-// determineChecksWanted returns the types of checks which are specified
-// explicitly as enabled in our config OR which are implicitly enabled
-// by virtue of their exclusion from config.
-func determineChecksWanted(d *schema.ResourceData) ([]string, error) {
-	checksWanted := []string{}
-
+func checksWanted(d *schema.ResourceData) []string {
+	checks := []string{}
 	for _, checkType := range ohdear.CheckTypes {
-		config := d.Get(checkType).(bool)
-		if config {
-			checksWanted = append(checksWanted, checkType)
+		if d.Get(checkType).(bool) {
+			checks = append(checks, checkType)
 		}
 	}
 
-	return checksWanted, nil
+	return checks
 }
