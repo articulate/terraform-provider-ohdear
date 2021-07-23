@@ -13,3 +13,4 @@ RUN apt-get update && \
     rm terraform.zip
 
 COPY --from=goreleaser/goreleaser /usr/local/bin/goreleaser /usr/local/bin/goreleaser
+COPY --from=golangci/golangci-lint /usr/bin/golangci-lint /usr/local/bin/golangci-lint
