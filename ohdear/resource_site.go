@@ -13,6 +13,8 @@ import (
 
 func resourceOhdearSite() *schema.Resource {
 	return &schema.Resource{
+		Description: "`ohdear_site` manages a site in Oh Dear.",
+
 		CreateContext: resourceOhdearSiteCreate,
 		ReadContext:   resourceOhdearSiteRead,
 		DeleteContext: resourceOhdearSiteDelete,
@@ -26,9 +28,10 @@ func resourceOhdearSite() *schema.Resource {
 			},
 			"team_id": {
 				Type:        schema.TypeInt,
-				Required:    true,
+				Optional:    true,
+				Computed:    true,
 				ForceNew:    true,
-				Description: "ID of the team for this site",
+				Description: "ID of the team for this site. If not set, will use `team_id` configured in provider.",
 			},
 			"uptime": {
 				Type:        schema.TypeBool,
@@ -61,6 +64,7 @@ func resourceOhdearSite() *schema.Resource {
 				Default:     true,
 			},
 		},
+		CustomizeDiff: resourceOhdearSiteDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
@@ -73,6 +77,15 @@ func getSiteID(d *schema.ResourceData) (int, error) {
 		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %v", err)
 	}
 	return id, err
+}
+
+func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
+	// set team_id from provider default if not provided
+	if d.Get("team_id") == 0 {
+		return d.SetNew("team_id", meta.(*Config).teamID)
+	}
+
+	return nil
 }
 
 func resourceOhdearSiteCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
