@@ -44,6 +44,12 @@ func Provider() *schema.Provider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_API_URL", "https://ohdear.app"),
 			},
+			"team_id": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Description: "The default team ID to use for sites. If not set, uses `OHDEAR_TEAM_ID` env var.",
+				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_TEAM_ID", 0),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"ohdear_site": resourceOhdearSite(),
@@ -66,6 +72,7 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}
 	return &Config{
 		apiToken: apiToken,
 		baseURL:  baseURL,
+		teamID:   d.Get("team_id").(int),
 		client:   client,
 	}, nil
 }

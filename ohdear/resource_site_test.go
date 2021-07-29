@@ -118,6 +118,37 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 	})
 }
 
+func TestAccOhdearSite_TeamID(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-test")
+	url := fmt.Sprintf("https://example.com/%s", name)
+	resourceName := fmt.Sprintf("ohdear_site.%s", name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		IDRefreshName:     resourceName,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config: testAccOhdearSiteConfigNoTeamID(name, url),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					testAccEnsureSiteExists(resourceName),
+					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
+					resource.TestCheckResourceAttr(resourceName, "url", url),
+				),
+			},
+			{
+				Config:             testAccOhdearSiteConfigTeamID(name, url, "1"),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "team_id", "1"),
+				),
+			},
+		},
+	})
+}
+
 // Checks
 
 func doesSiteExists(strID string) (bool, error) {
@@ -254,4 +285,21 @@ resource "ohdear_site" "%s" {
   uptime  = false
 }
 `, name, teamID, url)
+}
+
+func testAccOhdearSiteConfigNoTeamID(name, url string) string {
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  url = "%s"
+}
+`, name, url)
+}
+
+func testAccOhdearSiteConfigTeamID(name, url, team string) string {
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  team_id = %s
+  url     = "%s"
+}
+`, name, team, url)
 }
