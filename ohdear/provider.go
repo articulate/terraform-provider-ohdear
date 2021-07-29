@@ -37,11 +37,13 @@ func Provider() *schema.Provider {
 			"api_token": {
 				Type:        schema.TypeString,
 				Required:    true,
+				Description: "Oh Dear API token. If not set, uses `OHDEAR_TOKEN` env var.",
 				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_TOKEN", nil),
 			},
 			"api_url": {
 				Type:        schema.TypeString,
 				Required:    true,
+				Description: "Oh Dear API URL. If not set, uses `OHDEAR_API_URL` env var. Defaults to `https://ohdear.app`.",
 				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_API_URL", "https://ohdear.app"),
 			},
 			"team_id": {

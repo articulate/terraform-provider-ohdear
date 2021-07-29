@@ -9,6 +9,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
+// Format example Terraform files
+//go:generate terraform fmt -recursive ./examples/
+
+// Run the docs generation tool
+//go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
+
 // automatically set by goreleaser
 var version = "dev"
 

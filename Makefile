@@ -30,6 +30,11 @@ install: build ## Install to global Terraform plugin directory
 	@cp dist/terraform-provider-${NAME}_${OS_ARCH}/terraform-provider-* ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 .PHONY: install
 
+generate: ## Autogenerate docs and resources
+	@echo "+ $@"
+	@go generate ${PKG_LIST}
+.PHONY: generate
+
 ##
 ## Development
 ## ---------------------------------------------------------------------------
