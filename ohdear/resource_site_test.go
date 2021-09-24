@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -40,11 +41,13 @@ func TestAccOhdearSite(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					testAccEnsureChecksEnabled(resourceName, ohdear.CheckTypes),
-					resource.TestCheckResourceAttr(resourceName, "uptime", "true"),
-					resource.TestCheckResourceAttr(resourceName, "broken_links", "true"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_health", "true"),
-					resource.TestCheckResourceAttr(resourceName, "mixed_content", "true"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_transparency", "true"),
+					testAccEnsureChecksEnabled(resourceName, []string{"performance"}),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_transparency", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "true"),
 				),
 			},
 			{
@@ -69,13 +72,6 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 	url := fmt.Sprintf("https://example.com/%s", name)
 	resourceName := fmt.Sprintf("ohdear_site.%s", name)
 
-	enabledChecks := []string{
-		ohdear.BrokenLinksCheck,
-		ohdear.CertHealthCheck,
-		ohdear.MixedContentCheck,
-		ohdear.CertTransparencyCheck,
-	}
-
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		IDRefreshName:     resourceName,
@@ -83,35 +79,38 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 		CheckDestroy:      testAccCheckSiteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigUptimeDisabled(name, url),
+				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": true, "broken_links": true}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccEnsureSiteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
-					resource.TestCheckResourceAttr(resourceName, "uptime", "false"),
-					resource.TestCheckResourceAttr(resourceName, "broken_links", "true"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_health", "true"),
-					resource.TestCheckResourceAttr(resourceName, "mixed_content", "true"),
-					resource.TestCheckResourceAttr(resourceName, "certificate_transparency", "true"),
-					testAccEnsureChecksEnabled(resourceName, enabledChecks),
-					testAccEnsureChecksDisabled(resourceName, []string{ohdear.UptimeCheck}),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_transparency", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "false"),
+					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links"}),
+					testAccEnsureChecksDisabled(resourceName, []string{"mixed_content", "performance"}),
 				),
 			},
 			{
-				Config: testAccOhdearSiteConfigBasic(name, url),
+				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": true}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "url", url),
-					resource.TestCheckResourceAttr(resourceName, "uptime", "true"),
-					testAccEnsureChecksEnabled(resourceName, []string{ohdear.UptimeCheck}),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "false"),
+					testAccEnsureChecksEnabled(resourceName, []string{"uptime"}),
+					testAccEnsureChecksDisabled(resourceName, []string{"broken_links", "performance"}),
 				),
 			},
 			{
-				Config: testAccOhdearSiteConfigUptimeDisabled(name, url),
+				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": false}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "url", url),
-					resource.TestCheckResourceAttr(resourceName, "uptime", "false"),
-					testAccEnsureChecksEnabled(resourceName, enabledChecks),
-					testAccEnsureChecksDisabled(resourceName, []string{ohdear.UptimeCheck}),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "false"),
+					testAccEnsureChecksDisabled(resourceName, []string{"uptime", "broken_links"}),
 				),
 			},
 		},
@@ -130,7 +129,7 @@ func TestAccOhdearSite_TeamID(t *testing.T) {
 		CheckDestroy:      testAccCheckSiteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigNoTeamID(name, url),
+				Config: testAccOhdearSiteConfigBasic(name, url),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccEnsureSiteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
@@ -271,25 +270,6 @@ func isCheckEnabled(site *ohdear.Site, checkName string) bool {
 func testAccOhdearSiteConfigBasic(name, url string) string {
 	return fmt.Sprintf(`
 resource "ohdear_site" "%s" {
-  team_id = %s
-  url     = "%s"
-}
-`, name, teamID, url)
-}
-
-func testAccOhdearSiteConfigUptimeDisabled(name, url string) string {
-	return fmt.Sprintf(`
-resource "ohdear_site" "%s" {
-  team_id = %s
-  url     = "%s"
-  uptime  = false
-}
-`, name, teamID, url)
-}
-
-func testAccOhdearSiteConfigNoTeamID(name, url string) string {
-	return fmt.Sprintf(`
-resource "ohdear_site" "%s" {
   url = "%s"
 }
 `, name, url)
@@ -302,4 +282,21 @@ resource "ohdear_site" "%s" {
   url     = "%s"
 }
 `, name, team, url)
+}
+
+func testAccOhdearSiteConfigChecks(name, url string, checks map[string]bool) string {
+	block := []string{}
+	for check, enabled := range checks {
+		block = append(block, fmt.Sprintf("%s = %t", check, enabled))
+	}
+
+	return fmt.Sprintf(`
+resource "ohdear_site" "%s" {
+  url = "%s"
+
+  checks {
+    %s
+  }
+}
+`, name, url, strings.Join(block, "\n    "))
 }

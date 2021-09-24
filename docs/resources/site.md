@@ -15,16 +15,16 @@ description: |-
 ```terraform
 resource "ohdear_site" "test" {
   url = "https://example.com"
+  # all checks are enabled
 }
 
-# Turn off some checks
 resource "ohdear_site" "uptime-only" {
   url = "https://example.org"
 
-  broken_links             = false
-  certificate_health       = false
-  certificate_transparency = false
-  mixed_content            = false
+  # Only the uptime check is enabled
+  checks {
+    uptime = true
+  }
 }
 ```
 
@@ -37,13 +37,21 @@ resource "ohdear_site" "uptime-only" {
 
 ### Optional
 
-- **broken_links** (Boolean) Enable/Disable broken_links check. Defaults to `true`.
-- **certificate_health** (Boolean) Enable/Disable certificate_health check. Defaults to `true`.
-- **certificate_transparency** (Boolean) Enable/Disable certificate_transparency check. Cannot be used with http URLs. Defaults to `true`.
+- **checks** (Block List, Max: 1) Set the checks enabled for the site. If block is not present, it will enable all checks. (see [below for nested schema](#nestedblock--checks))
 - **id** (String) The ID of this resource.
-- **mixed_content** (Boolean) Enable/Disable mixed_content check. Defaults to `true`.
 - **team_id** (Number) ID of the team for this site. If not set, will use `team_id` configured in provider.
-- **uptime** (Boolean) Enable/Disable uptime check. Defaults to `true`.
+
+<a id="nestedblock--checks"></a>
+### Nested Schema for `checks`
+
+Optional:
+
+- **broken_links** (Boolean) Enable broken link checks.
+- **certificate_health** (Boolean) Enable certificate health checks. Requires the url to use https.
+- **certificate_transparency** (Boolean) Enable certificate transparency checks. Requires the url to use https.
+- **mixed_content** (Boolean) Enable mixed content checks.
+- **performance** (Boolean) Enable performance checks.
+- **uptime** (Boolean) Enable uptime checks.
 
 ## Import
 

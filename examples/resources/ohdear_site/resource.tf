@@ -1,13 +1,13 @@
 resource "ohdear_site" "test" {
   url = "https://example.com"
+  # all checks are enabled
 }
 
-# Turn off some checks
 resource "ohdear_site" "uptime-only" {
   url = "https://example.org"
 
-  broken_links             = false
-  certificate_health       = false
-  certificate_transparency = false
-  mixed_content            = false
+  # Only the uptime check is enabled
+  checks {
+    uptime = true
+  }
 }
