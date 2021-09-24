@@ -5,7 +5,7 @@ import (
 	"flag"
 	"log"
 
-	"github.com/articulate/terraform-provider-ohdear/ohdear"
+	"github.com/articulate/terraform-provider-ohdear/internal/provider"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
 
-	opts := &plugin.ServeOpts{ProviderFunc: ohdear.New(version)}
+	opts := &plugin.ServeOpts{ProviderFunc: provider.New(version)}
 
 	if debugMode {
 		err := plugin.Debug(context.Background(), "registry.terraform.io/articulate/ohdear", opts)

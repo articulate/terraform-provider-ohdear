@@ -1,4 +1,4 @@
-package ohdear
+package provider
 
 import "github.com/articulate/ohdear-sdk/ohdear"
 
