@@ -40,4 +40,4 @@ resource "ohdear_site" "fnord" {
 ## Requirements
 
 * [Terraform](https://www.terraform.io/downloads.html) >= 0.12.x
-* [Go](https://golang.org/doc/install) 1.16 (for development)
+* [Go](https://golang.org/doc/install) 1.17 (for development)
