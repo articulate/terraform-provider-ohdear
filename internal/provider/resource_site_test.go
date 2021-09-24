@@ -1,4 +1,4 @@
-package ohdear
+package provider
 
 import (
 	"fmt"
