@@ -21,6 +21,9 @@ func init() {
 		if s.Default != nil {
 			desc += fmt.Sprintf(" Defaults to `%v`.", s.Default)
 		}
+		if s.Deprecated != "" {
+			desc += fmt.Sprintf(" __Deprecated__: %s", s.Deprecated)
+		}
 		return strings.TrimSpace(desc)
 	}
 }
@@ -42,7 +45,7 @@ func Provider() *schema.Provider {
 			},
 			"api_url": {
 				Type:        schema.TypeString,
-				Required:    true,
+				Optional:    true,
 				Description: "Oh Dear API URL. If not set, uses `OHDEAR_API_URL` env var. Defaults to `https://ohdear.app`.",
 				DefaultFunc: schema.EnvDefaultFunc("OHDEAR_API_URL", "https://ohdear.app"),
 			},
