@@ -1,6 +1,6 @@
-FROM golang:1.16
+FROM golang:1.17
 
-ARG VERSION=0.13.7
+ARG VERSION=1.0.7
 
 RUN apt-get update && \
     apt-get -y --no-install-recommends install ca-certificates curl unzip && \
