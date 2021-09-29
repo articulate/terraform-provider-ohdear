@@ -2,15 +2,13 @@ package provider
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/articulate/ohdear-sdk/ohdear"
-
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
@@ -40,8 +38,7 @@ func TestAccOhdearSite(t *testing.T) {
 					testAccEnsureSiteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
-					testAccEnsureChecksEnabled(resourceName, ohdear.CheckTypes),
-					testAccEnsureChecksEnabled(resourceName, []string{"performance"}),
+					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links", "certificate_health", "certificate_transparency", "mixed_content", "performance"}),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "true"),
@@ -153,8 +150,8 @@ func TestAccOhdearSite_TeamID(t *testing.T) {
 func doesSiteExists(strID string) (bool, error) {
 	client := testAccProvider.Meta().(*Config).client
 	id, _ := strconv.Atoi(strID)
-	if _, res, err := client.SiteService.GetSite(id); err != nil {
-		if res.StatusCode == http.StatusNotFound {
+	if _, err := client.GetSite(id); err != nil {
+		if err, ok := err.(*ohdear.Error); ok && err.Response.StatusCode() == 404 {
 			return false, nil
 		}
 
@@ -215,7 +212,7 @@ func testAccEnsureChecksEnabled(name string, checksWanted []string) resource.Tes
 			return missingErr
 		}
 		siteID, _ := strconv.Atoi(rs.Primary.ID)
-		site, _, _ := client.SiteService.GetSite(siteID)
+		site, _ := client.GetSite(siteID)
 
 		for _, check := range checksWanted {
 			enabled := isCheckEnabled(site, check)
@@ -228,6 +225,7 @@ func testAccEnsureChecksEnabled(name string, checksWanted []string) resource.Tes
 	}
 }
 
+// TODO: merge with enabled (take map of boolean to check all at once)
 func testAccEnsureChecksDisabled(name string, checksWanted []string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		client := testAccProvider.Meta().(*Config).client
@@ -238,7 +236,7 @@ func testAccEnsureChecksDisabled(name string, checksWanted []string) resource.Te
 		}
 
 		siteID, _ := strconv.Atoi(rs.Primary.ID)
-		site, _, err := client.SiteService.GetSite(siteID)
+		site, err := client.GetSite(siteID)
 		if err != nil {
 			return err
 		}
