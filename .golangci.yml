@@ -18,7 +18,3 @@ linters-settings:
     go: "1.17"
   unused:
     go: "1.17"
-
-issues:
-  exclude:
-    - exported (method|function|type|const) (.+) should have comment \(or a comment on this block\) or be unexported

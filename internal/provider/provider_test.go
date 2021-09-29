@@ -13,23 +13,23 @@ var testAccProvider *schema.Provider
 var testAccProviderFactories = map[string]func() (*schema.Provider, error){}
 
 func init() {
-	testAccProvider = New("test")()
+	testAccProvider = New()
 	testAccProviderFactories = map[string]func() (*schema.Provider, error){
 		"ohdear": func() (*schema.Provider, error) {
-			return New("test")(), nil
+			return New(), nil
 		},
 	}
 }
 
 func TestProvider(t *testing.T) {
-	provider := New("test")()
+	provider := New()
 	if err := provider.InternalValidate(); err != nil {
 		t.Fatalf("err: %s", err)
 	}
 }
 
 func TestProvider_impl(t *testing.T) {
-	var _ schema.Provider = *New("test")()
+	var _ schema.Provider = *New()
 }
 
 func testAccPreCheck(t *testing.T) {

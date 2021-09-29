@@ -27,7 +27,7 @@ all: ## Build all OS/Arch
 install: build ## Install to global Terraform plugin directory
 	@echo "+ $@"
 	@mkdir -p ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
-	@cp dist/terraform-provider-${NAME}_${OS_ARCH}/terraform-provider-* ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
+	@mv dist/terraform-provider-${NAME}_${OS_ARCH}/terraform-provider-* ~/.terraform.d/plugins/${HOSTNAME}/${NAMESPACE}/${NAME}/${VERSION}/${OS_ARCH}
 .PHONY: install
 
 generate: ## Autogenerate docs and resources

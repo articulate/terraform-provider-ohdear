@@ -1,11 +1,10 @@
 package provider
 
-import "github.com/articulate/ohdear-sdk/ohdear"
+import (
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
+)
 
 type Config struct {
-	apiToken string
-	baseURL  string
-	teamID   int
-
 	client *ohdear.Client
+	teamID int
 }

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/articulate/ohdear-sdk/ohdear"
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -123,12 +123,7 @@ func resourceOhdearSiteCreate(ctx context.Context, d *schema.ResourceData, meta 
 	log.Println("[DEBUG] Calling Create lifecycle function for site")
 
 	client := meta.(*Config).client
-	site, _, err := client.SiteService.CreateSite(&ohdear.SiteRequest{
-		URL:    d.Get("url").(string),
-		TeamID: d.Get("team_id").(int),
-		Checks: checksWanted(d),
-	})
-
+	site, err := client.AddSite(d.Get("url").(string), d.Get("team_id").(int), checksWanted(d))
 	if err != nil {
 		return diagErrorf(err, "Could not add site to Oh Dear")
 	}
@@ -147,13 +142,13 @@ func resourceOhdearSiteRead(ctx context.Context, d *schema.ResourceData, meta in
 	}
 
 	client := meta.(*Config).client
-	site, _, err := client.SiteService.GetSite(id)
+	site, err := client.GetSite(id)
 	if err != nil {
-		return diagErrorf(err, "Could not find site in Oh Dear")
+		return diagErrorf(err, "Could not find site %d in Oh Dear", id)
 	}
 
-	checkStateMap := checkStateMapFromSite(site)
-	if err := d.Set("checks", []interface{}{checkStateMap}); err != nil {
+	checks := checkStateMapFromSite(site)
+	if err := d.Set("checks", []interface{}{checks}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -176,8 +171,9 @@ func resourceOhdearSiteDelete(ctx context.Context, d *schema.ResourceData, meta 
 		return diag.FromErr(err)
 	}
 
-	if _, err = meta.(*Config).client.SiteService.DeleteSite(id); err != nil {
-		return diagErrorf(err, "Could not remove site from Oh Dear")
+	client := meta.(*Config).client
+	if err = client.RemoveSite(id); err != nil {
+		return diagErrorf(err, "Could not remove site %d from Oh Dear", id)
 	}
 
 	return nil
@@ -192,7 +188,7 @@ func resourceOhdearSiteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 	}
 
 	client := meta.(*Config).client
-	site, _, err := client.SiteService.GetSite(id)
+	site, err := client.GetSite(id)
 	if err != nil {
 		return diagErrorf(err, "Could not find site in Oh Dear")
 	}
@@ -202,13 +198,13 @@ func resourceOhdearSiteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 	for _, check := range site.Checks {
 		if check.Enabled {
 			if !contains(checksWanted, check.Type) {
-				if _, err := client.CheckService.DisableCheck(check.ID); err != nil {
+				if err := client.DisableCheck(check.ID); err != nil {
 					return diagErrorf(err, "Could not remove check to site in Oh Dear")
 				}
 			}
 		} else {
 			if contains(checksWanted, check.Type) {
-				if _, err := client.CheckService.EnableCheck(check.ID); err != nil {
+				if err := client.EnableCheck(check.ID); err != nil {
 					return diagErrorf(err, "Could not add check to site in Oh Dear")
 				}
 			}
