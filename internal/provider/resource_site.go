@@ -102,7 +102,7 @@ func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta inte
 			"broken_links":             true,
 			"certificate_health":       isHTTPS,
 			"certificate_transparency": isHTTPS,
-			"mixed_content":            true,
+			"mixed_content":            isHTTPS,
 			"performance":              true,
 		})
 

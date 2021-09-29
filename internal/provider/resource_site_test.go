@@ -145,6 +145,34 @@ func TestAccOhdearSite_TeamID(t *testing.T) {
 	})
 }
 
+func TestAccOhdearSite_HTTPDefaults(t *testing.T) {
+	name := acctest.RandomWithPrefix("tf-acc-test")
+	url := fmt.Sprintf("http://example.com/%s", name)
+	resourceName := fmt.Sprintf("ohdear_site.%s", name)
+
+	resource.Test(t, resource.TestCase{
+		PreCheck:          func() { testAccPreCheck(t) },
+		IDRefreshName:     resourceName,
+		ProviderFactories: testAccProviderFactories,
+		CheckDestroy:      testAccCheckSiteDestroy,
+		Steps: []resource.TestStep{
+			{
+				Config:             testAccOhdearSiteConfigBasic(name, url),
+				PlanOnly:           true,
+				ExpectNonEmptyPlan: true,
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_transparency", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "true"),
+				),
+			},
+		},
+	})
+}
+
 // Checks
 
 func doesSiteExists(strID string) (bool, error) {
