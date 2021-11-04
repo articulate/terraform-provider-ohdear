@@ -13,7 +13,7 @@ type Client struct {
 
 func NewClient(baseURL, token string) *Client {
 	client := resty.New()
-	client.SetHostURL(baseURL)
+	client.SetBaseURL(baseURL)
 	client.SetAuthToken(token)
 	client.SetHeaders(map[string]string{
 		"Accept":       "application/json",
