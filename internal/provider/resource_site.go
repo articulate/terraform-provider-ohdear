@@ -74,6 +74,11 @@ func resourceOhdearSite() *schema.Resource {
 							Description: "Enable performance checks.",
 							Optional:    true,
 						},
+						"dns": {
+							Type:        schema.TypeBool,
+							Description: "Enable DNS checks.",
+							Optional:    true,
+						},
 					},
 				},
 			},
