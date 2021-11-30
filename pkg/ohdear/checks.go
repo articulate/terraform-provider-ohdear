@@ -2,6 +2,26 @@ package ohdear
 
 import "fmt"
 
+const (
+	UptimeCheck                  = "uptime"
+	BrokenLinksCheck             = "broken_links"
+	CertificateHealthCheck       = "certificate_health"
+	CertificateTransparencyCheck = "certificate_transparency"
+	MixedContentCheck            = "mixed_content"
+	PerformanceCheck             = "performance"
+	DNSCheck                     = "dns"
+)
+
+var AllChecks = []string{
+	UptimeCheck,
+	BrokenLinksCheck,
+	CertificateHealthCheck,
+	CertificateTransparencyCheck,
+	MixedContentCheck,
+	PerformanceCheck,
+	DNSCheck,
+}
+
 type Check struct {
 	ID      int    `json:"id"`
 	Type    string `json:"type"`

@@ -44,34 +44,40 @@ func resourceOhdearSite() *schema.Resource {
 				MaxItems:    1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"uptime": {
+						ohdear.UptimeCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable uptime checks.",
 							Optional:    true,
 						},
-						"broken_links": {
+						ohdear.BrokenLinksCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable broken link checks.",
 							Optional:    true,
 						},
-						"certificate_health": {
+						ohdear.CertificateHealthCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable certificate health checks. Requires the url to use https.",
 							Optional:    true,
 						},
-						"certificate_transparency": {
+						ohdear.CertificateTransparencyCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable certificate transparency checks. Requires the url to use https.",
 							Optional:    true,
 						},
-						"mixed_content": {
+						ohdear.MixedContentCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable mixed content checks.",
 							Optional:    true,
 						},
-						"performance": {
+						ohdear.PerformanceCheck: {
 							Type:        schema.TypeBool,
 							Description: "Enable performance checks.",
+							Optional:    true,
+						},
+						ohdear.DNSCheck: {
+							Type:        schema.TypeBool,
+							Description: "Enable DNS checks.",
+							Default:     false,
 							Optional:    true,
 						},
 					},
@@ -98,12 +104,13 @@ func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta inte
 	if len(checks) == 0 {
 		isHTTPS := strings.HasPrefix(d.Get("url").(string), "https")
 		checks = append(checks, map[string]bool{
-			"uptime":                   true,
-			"broken_links":             true,
-			"certificate_health":       isHTTPS,
-			"certificate_transparency": isHTTPS,
-			"mixed_content":            isHTTPS,
-			"performance":              true,
+			ohdear.UptimeCheck:                  true,
+			ohdear.BrokenLinksCheck:             true,
+			ohdear.CertificateHealthCheck:       isHTTPS,
+			ohdear.CertificateTransparencyCheck: isHTTPS,
+			ohdear.MixedContentCheck:            isHTTPS,
+			ohdear.PerformanceCheck:             true,
+			ohdear.DNSCheck:                     false, // TODO: turn to true on next major release (breaking change)
 		})
 
 		if err := d.SetNew("checks", checks); err != nil {
@@ -217,7 +224,7 @@ func resourceOhdearSiteUpdate(ctx context.Context, d *schema.ResourceData, meta 
 func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
 	result := make(map[string]bool)
 	for _, check := range site.Checks {
-		if check.Type != "cron" {
+		if contains(ohdear.AllChecks, check.Type) {
 			result[check.Type] = check.Enabled
 		}
 	}
