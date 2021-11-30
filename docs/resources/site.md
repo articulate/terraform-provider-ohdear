@@ -49,6 +49,7 @@ Optional:
 - **broken_links** (Boolean) Enable broken link checks.
 - **certificate_health** (Boolean) Enable certificate health checks. Requires the url to use https.
 - **certificate_transparency** (Boolean) Enable certificate transparency checks. Requires the url to use https.
+- **dns** (Boolean) Enable DNS checks. Defaults to `false`.
 - **mixed_content** (Boolean) Enable mixed content checks.
 - **performance** (Boolean) Enable performance checks.
 - **uptime** (Boolean) Enable uptime checks.
