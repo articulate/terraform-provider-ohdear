@@ -1,9 +1,6 @@
 package main
 
 import (
-	"context"
-	"log"
-
 	"github.com/articulate/terraform-provider-ohdear/internal/provider"
 	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
@@ -16,15 +13,9 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 func main() {
-	opts := &plugin.ServeOpts{ProviderFunc: provider.New}
-
-	if runtime.Debug() {
-		err := plugin.Debug(context.Background(), "registry.terraform.io/articulate/ohdear", opts)
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-		return
-	}
-
-	plugin.Serve(opts)
+	plugin.Serve(&plugin.ServeOpts{
+		ProviderFunc: provider.New,
+		ProviderAddr: "registry.terraform.io/articulate/ohdear",
+		Debug:        runtime.Debug(),
+	})
 }
