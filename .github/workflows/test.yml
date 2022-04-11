@@ -16,18 +16,20 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: 1.17
+          check-latest: true
       - run: go build -v .
 
   lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: 1.17
+          check-latest: true
       - uses: golangci/golangci-lint-action@v3
 
   test:
@@ -46,9 +48,10 @@ jobs:
           - '1.1.3'
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v3
         with:
           go-version: 1.17
+          check-latest: true
       - uses: actions/cache@v3
         with:
           path: ~/go/pkg/mod
