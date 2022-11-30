@@ -3,9 +3,10 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
 
   - package-ecosystem: "gomod"
     directory: "/"
+    open-pull-requests-limit: 25
     schedule:
-      interval: "daily"
+      interval: "monthly"
