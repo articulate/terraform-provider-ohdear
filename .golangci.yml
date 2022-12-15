@@ -12,9 +12,5 @@ linters:
 linters-settings:
   gocyclo:
     min-complexity: 10
-  gosimple:
-    go: "1.17"
-  staticcheck:
-    go: "1.17"
-  unused:
-    go: "1.17"
+  goimports:
+    local-prefixes: github.com/articulate/terraform-provider-ohdear
