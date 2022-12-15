@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
-	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
 func init() {
@@ -59,8 +60,12 @@ func New() *schema.Provider {
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+	ua := fmt.Sprintf(
+		"terraform-provider-ohdear/%s (https://github.com/articulate/terraform-provider-ohdear)",
+		runtime.Version,
+	)
 	client := ohdear.NewClient(d.Get("api_url").(string), d.Get("api_token").(string))
-	client.SetUserAgent(fmt.Sprintf("terraform-provider-ohdear/%s (https://github.com/articulate/terraform-provider-ohdear)", runtime.Version))
+	client.SetUserAgent(ua)
 
 	return &Config{
 		client: client,

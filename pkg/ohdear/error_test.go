@@ -1,6 +1,7 @@
 package ohdear
 
 import (
+	"errors"
 	"net/http"
 	"testing"
 
@@ -58,7 +59,7 @@ func TestErrorFromResponse(t *testing.T) {
 	_, err = client.R().Get("/api/sites/1")
 	assert.Error(t, err)
 
-	e, ok := err.(*Error)
-	assert.True(t, ok)
+	var e *Error
+	assert.True(t, errors.As(err, &e))
 	assert.Equal(t, 404, e.Response.StatusCode())
 }

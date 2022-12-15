@@ -13,7 +13,6 @@ func (c *Client) GetSite(id int) (*Site, error) {
 	resp, err := c.R().
 		SetResult(&Site{}).
 		Get(fmt.Sprintf("/api/sites/%d", id))
-
 	if err != nil {
 		return nil, err
 	}
@@ -30,7 +29,6 @@ func (c *Client) AddSite(url string, teamID int, checks []string) (*Site, error)
 		}).
 		SetResult(&Site{}).
 		Post("/api/sites")
-
 	if err != nil {
 		return nil, err
 	}

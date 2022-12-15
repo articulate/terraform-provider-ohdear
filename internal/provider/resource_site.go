@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
 func resourceOhdearSite() *schema.Resource {
@@ -94,7 +95,7 @@ func resourceOhdearSite() *schema.Resource {
 func getSiteID(d *schema.ResourceData) (int, error) {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %v", err)
+		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %w", err)
 	}
 	return id, err
 }

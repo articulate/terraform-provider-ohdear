@@ -6,8 +6,10 @@ import (
 )
 
 // automatically set by goreleaser
-var Version = "DEV"
-var Commit string
+var (
+	Version = "DEV"
+	Commit  string
+)
 
 // Flag (-debug)
 var isDebug bool
