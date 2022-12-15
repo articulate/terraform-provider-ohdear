@@ -1,6 +1,7 @@
 package ohdear
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"strconv"
@@ -34,17 +35,22 @@ func TestClient(t *testing.T) {
 	// if we defer, we get log leakage from the other cleanup function
 	t.Cleanup(reset)
 
+	ua := "terraform-provider-ohdear/TEST (https://github.com/articulate/terraform-provider-ohdear) integration-tests"
 	client := NewClient(url, token)
 	client.SetDebug(false)
-	client.SetUserAgent("terraform-provider-ohdear/TEST (https://github.com/articulate/terraform-provider-ohdear) integration-tests")
+	client.SetUserAgent(ua)
 
 	create, err := client.AddSite("https://example.com", team, []string{"uptime"})
 	assert.NoError(t, err)
 
 	// make sure we remove the site even if tests fail
 	t.Cleanup(func() {
-		err, ok := client.RemoveSite(create.ID).(*Error)
-		if !ok || err.Response.StatusCode() != 404 {
+		var e *Error
+		if !errors.As(err, &e) {
+			t.Fatal("site was not removed from OhDear")
+		}
+
+		if e.Response.StatusCode() != 404 {
 			t.Fatal("site was not removed from Oh Dear")
 		}
 	})
@@ -83,7 +89,10 @@ func TestClient(t *testing.T) {
 	time.Sleep(5 * time.Second)
 	removed, err := client.GetSite(site.ID)
 	assert.Nil(t, removed)
-	assert.Equal(t, 404, err.(*Error).Response.StatusCode())
+
+	var e *Error
+	assert.True(t, errors.As(err, &e))
+	assert.Equal(t, 404, e.Response.StatusCode())
 }
 
 func TestSetUserAgent(t *testing.T) {

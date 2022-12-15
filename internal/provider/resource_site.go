@@ -95,7 +95,7 @@ func resourceOhdearSite() *schema.Resource {
 func getSiteID(d *schema.ResourceData) (int, error) {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %v", err)
+		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %w", err)
 	}
 	return id, err
 }

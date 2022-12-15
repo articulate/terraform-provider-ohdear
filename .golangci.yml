@@ -1,13 +1,30 @@
 linters:
+  presets:
+    - bugs
+    - error
+    - performance
   enable:
     - gofmt
+    - gofumpt
     - revive
     - gocyclo
     - misspell
     - whitespace
     - goimports
-    - gofmt
     - gosec
+    - lll
+  disable:
+    - scopelint
+    - rowserrcheck
+    - sqlclosecheck
+    - maligned
+    - wrapcheck
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - goerr113
 
 linters-settings:
   gocyclo:

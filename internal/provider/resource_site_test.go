@@ -1,6 +1,7 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
@@ -39,7 +40,11 @@ func TestAccOhdearSite(t *testing.T) {
 					testAccEnsureSiteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
-					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links", "certificate_health", "certificate_transparency", "mixed_content", "performance"}),
+					testAccEnsureChecksEnabled(resourceName, []string{
+						"uptime", "broken_links", "certificate_health",
+						"certificate_transparency", "mixed_content",
+						"performance",
+					}),
 					testAccEnsureChecksDisabled(resourceName, []string{"dns"}),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
@@ -184,7 +189,8 @@ func doesSiteExists(strID string) (bool, error) {
 	client := testAccProvider.Meta().(*Config).client
 	id, _ := strconv.Atoi(strID)
 	if _, err := client.GetSite(id); err != nil {
-		if err, ok := err.(*ohdear.Error); ok && err.Response.StatusCode() == 404 {
+		var e *ohdear.Error
+		if errors.As(err, &e) && e.Response.StatusCode() == 404 {
 			return false, nil
 		}
 

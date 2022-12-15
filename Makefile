@@ -55,10 +55,10 @@ lint: ## Lint Go code
 	@golangci-lint run
 .PHONY: lint
 
-fix: ## Try to fix lint issues
+format: ## Try to fix lint issues
 	@echo "+ $@"
 	@golangci-lint run --fix
-.PHONY: fix
+.PHONY: format
 
 ##
 ## Tests

@@ -9,8 +9,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 )
 
-var testAccProvider *schema.Provider
-var testAccProviderFactories = map[string]func() (*schema.Provider, error){}
+var (
+	testAccProvider          *schema.Provider
+	testAccProviderFactories = map[string]func() (*schema.Provider, error){}
+)
 
 func init() {
 	testAccProvider = New()
