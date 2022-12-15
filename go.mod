@@ -1,6 +1,6 @@
 module github.com/articulate/terraform-provider-ohdear
 
-go 1.17
+go 1.19
 
 require (
 	github.com/go-resty/resty/v2 v2.7.0
