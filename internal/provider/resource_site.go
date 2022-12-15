@@ -7,10 +7,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
+	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
 func resourceOhdearSite() *schema.Resource {
@@ -94,9 +95,9 @@ func resourceOhdearSite() *schema.Resource {
 func getSiteID(d *schema.ResourceData) (int, error) {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %v", err)
+		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %w", err)
 	}
-	return id, err
+	return id, nil
 }
 
 func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
@@ -114,13 +115,17 @@ func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta inte
 		})
 
 		if err := d.SetNew("checks", checks); err != nil {
-			return err
+			return fmt.Errorf("could not set checks: %w", err)
 		}
 	}
 
 	// set team_id from provider default if not provided
-	if d.Get("team_id") == 0 {
-		return d.SetNew("team_id", meta.(*Config).teamID)
+	if d.Get("team_id") != 0 {
+		return nil
+	}
+
+	if err := d.SetNew("team_id", meta.(*Config).teamID); err != nil {
+		return fmt.Errorf("could not set team_id: %w", err)
 	}
 
 	return nil

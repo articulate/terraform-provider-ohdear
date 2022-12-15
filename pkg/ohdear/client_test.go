@@ -34,9 +34,10 @@ func TestClient(t *testing.T) {
 	// if we defer, we get log leakage from the other cleanup function
 	t.Cleanup(reset)
 
+	ua := "terraform-provider-ohdear/TEST (https://github.com/articulate/terraform-provider-ohdear) integration-tests"
 	client := NewClient(url, token)
 	client.SetDebug(false)
-	client.SetUserAgent("terraform-provider-ohdear/TEST (https://github.com/articulate/terraform-provider-ohdear) integration-tests")
+	client.SetUserAgent(ua)
 
 	create, err := client.AddSite("https://example.com", team, []string{"uptime"})
 	assert.NoError(t, err)

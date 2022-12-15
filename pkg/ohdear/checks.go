@@ -30,10 +30,16 @@ type Check struct {
 
 func (c *Client) EnableCheck(id int) error {
 	_, err := c.R().Post(fmt.Sprintf("/api/checks/%d/enable", id))
-	return err
+	if err != nil {
+		return fmt.Errorf("could not enable check %d: %w", id, err)
+	}
+	return nil
 }
 
 func (c *Client) DisableCheck(id int) error {
 	_, err := c.R().Post(fmt.Sprintf("/api/checks/%d/disable", id))
-	return err
+	if err != nil {
+		return fmt.Errorf("could not disable check %d: %w", id, err)
+	}
+	return nil
 }

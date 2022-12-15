@@ -59,7 +59,11 @@ func TestAddSite(t *testing.T) {
 		func(req *http.Request) (*http.Response, error) {
 			body, err := io.ReadAll(req.Body)
 			assert.NoError(t, err)
-			assert.Equal(t, `{"checks":["uptime","performance","broken_links"],"team_id":5678,"url":"https://example.com/new"}`, string(body))
+			assert.Equal(
+				t,
+				`{"checks":["uptime","performance","broken_links"],"team_id":5678,"url":"https://example.com/new"}`,
+				string(body),
+			)
 
 			return httpmock.NewJsonResponse(200, map[string]interface{}{
 				"id":      4321,

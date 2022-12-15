@@ -1,9 +1,10 @@
 package main
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
+
 	"github.com/articulate/terraform-provider-ohdear/internal/provider"
 	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 )
 
 // Format example Terraform files

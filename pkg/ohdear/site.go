@@ -13,9 +13,8 @@ func (c *Client) GetSite(id int) (*Site, error) {
 	resp, err := c.R().
 		SetResult(&Site{}).
 		Get(fmt.Sprintf("/api/sites/%d", id))
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not fetch site %d: %w", id, err)
 	}
 
 	return resp.Result().(*Site), nil
@@ -30,9 +29,8 @@ func (c *Client) AddSite(url string, teamID int, checks []string) (*Site, error)
 		}).
 		SetResult(&Site{}).
 		Post("/api/sites")
-
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not add site %s: %w", url, err)
 	}
 
 	return resp.Result().(*Site), nil
@@ -40,5 +38,8 @@ func (c *Client) AddSite(url string, teamID int, checks []string) (*Site, error)
 
 func (c *Client) RemoveSite(id int) error {
 	_, err := c.R().Delete(fmt.Sprintf("/api/sites/%d", id))
-	return err
+	if err != nil {
+		return fmt.Errorf("could not remove site %d: %w", id, err)
+	}
+	return nil
 }
