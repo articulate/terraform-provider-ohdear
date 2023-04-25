@@ -141,7 +141,7 @@ func resourceOhdearSiteCreate(ctx context.Context, d *schema.ResourceData, meta 
 	return resourceOhdearSiteRead(ctx, d, meta)
 }
 
-func resourceOhdearSiteRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearSiteRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Read lifecycle function for site %s\n", d.Id())
 
 	id, err := getSiteID(d)
@@ -171,7 +171,7 @@ func resourceOhdearSiteRead(ctx context.Context, d *schema.ResourceData, meta in
 	return nil
 }
 
-func resourceOhdearSiteDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearSiteDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Delete lifecycle function for site %s\n", d.Id())
 
 	id, err := getSiteID(d)
