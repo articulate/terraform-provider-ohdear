@@ -59,7 +59,7 @@ func New() *schema.Provider {
 	}
 }
 
-func providerConfigure(ctx context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
 	ua := fmt.Sprintf(
 		"terraform-provider-ohdear/%s (https://github.com/articulate/terraform-provider-ohdear)",
 		runtime.Version,

@@ -25,7 +25,7 @@ func (e Error) Error() string {
 	return fmt.Sprintf("%d: %s", e.Response.StatusCode(), e.Response.Status())
 }
 
-func errorFromResponse(c *resty.Client, r *resty.Response) error {
+func errorFromResponse(_ *resty.Client, r *resty.Response) error {
 	if !r.IsError() {
 		return nil
 	}
