@@ -33,26 +33,29 @@ resource "ohdear_site" "uptime-only" {
 
 ### Required
 
-- **url** (String) URL of the site to be checked.
+- `url` (String) URL of the site to be checked.
 
 ### Optional
 
-- **checks** (Block List, Max: 1) Set the checks enabled for the site. If block is not present, it will enable all checks. (see [below for nested schema](#nestedblock--checks))
-- **id** (String) The ID of this resource.
-- **team_id** (Number) ID of the team for this site. If not set, will use `team_id` configured in provider.
+- `checks` (Block List, Max: 1) Set the checks enabled for the site. If block is not present, it will enable all checks. (see [below for nested schema](#nestedblock--checks))
+- `team_id` (Number) ID of the team for this site. If not set, will use `team_id` configured in provider.
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--checks"></a>
 ### Nested Schema for `checks`
 
 Optional:
 
-- **broken_links** (Boolean) Enable broken link checks.
-- **certificate_health** (Boolean) Enable certificate health checks. Requires the url to use https.
-- **certificate_transparency** (Boolean) Enable certificate transparency checks. Requires the url to use https.
-- **dns** (Boolean) Enable DNS checks. Defaults to `false`.
-- **mixed_content** (Boolean) Enable mixed content checks.
-- **performance** (Boolean) Enable performance checks.
-- **uptime** (Boolean) Enable uptime checks.
+- `broken_links` (Boolean) Enable broken link checks.
+- `certificate_health` (Boolean) Enable certificate health checks. Requires the url to use https.
+- `certificate_transparency` (Boolean) Enable certificate transparency checks. Requires the url to use https.
+- `dns` (Boolean) Enable DNS checks. Defaults to `false`.
+- `mixed_content` (Boolean) Enable mixed content checks.
+- `performance` (Boolean) Enable performance checks.
+- `uptime` (Boolean) Enable uptime checks.
 
 ## Import
 
