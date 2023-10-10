@@ -1,12 +1,23 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: github-actions
+    directory: /
     schedule:
-      interval: "monthly"
-
-  - package-ecosystem: "gomod"
-    directory: "/"
+      interval: monthly
+    groups:
+      actions:
+        patterns:
+          - "*"
+  - package-ecosystem: gomod
+    directory: /
     open-pull-requests-limit: 25
     schedule:
-      interval: "monthly"
+      interval: monthly
+    groups:
+      terraform:
+        patterns:
+          - github.com/hashicorp/*
+      test:
+        patterns:
+          - github.com/jarcoal/httpmock
+          - github.com/stretchr/testify
