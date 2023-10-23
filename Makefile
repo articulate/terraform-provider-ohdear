@@ -16,12 +16,12 @@ help:
 
 build: ## Build for current OS/Arch
 	@echo "+ $@"
-	@goreleaser build --rm-dist --skip-validate --single-target
+	@goreleaser build --clean --skip=validate --single-target
 .PHONY: build
 
 all: ## Build all OS/Arch
 	@echo "+ $@"
-	@goreleaser build --rm-dist --skip-validate
+	@goreleaser build --clean --skip=validate
 .PHONY: all
 
 install: build ## Install to global Terraform plugin directory
@@ -38,12 +38,6 @@ generate: ## Autogenerate docs and resources
 ##
 ## Development
 ## ---------------------------------------------------------------------------
-
-dev: ## Start development environment via Docker
-	@echo "+ $@"
-	@docker build -t ${NAMESPACE}/terraform-provider-${NAME} .
-	@docker run --rm -it -v $(PWD):/go/src/github.com/${NAMESPACE}/terraform-provider-${NAME} -w /go/src/github.com/${NAMESPACE}/terraform-provider-${NAME} ${NAMESPACE}/terraform-provider-${NAME}
-.PHONY: dev
 
 mod: ## Make sure go.mod is up to date
 	@echo "+ $@"

@@ -7,6 +7,7 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetSite(t *testing.T) {
@@ -31,14 +32,14 @@ func TestGetSite(t *testing.T) {
 			},
 		},
 	})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	httpmock.RegisterResponder("GET", "https://ohdear.test/api/sites/1234", resp)
 
 	client := NewClient("https://ohdear.test", "")
 	httpmock.ActivateNonDefault(client.GetClient())
 
 	site, err := client.GetSite(1234)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 1234, site.ID)
 	assert.Equal(t, "https://example.com", site.URL)
 	assert.Equal(t, 5678, site.TeamID)
@@ -58,7 +59,7 @@ func TestAddSite(t *testing.T) {
 	httpmock.RegisterResponder("POST", "https://ohdear.test/api/sites",
 		func(req *http.Request) (*http.Response, error) {
 			body, err := io.ReadAll(req.Body)
-			assert.NoError(t, err)
+			require.NoError(t, err)
 			assert.Equal(
 				t,
 				`{"checks":["uptime","performance","broken_links"],"team_id":5678,"url":"https://example.com/new"}`,
@@ -83,7 +84,7 @@ func TestAddSite(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient())
 
 	site, err := client.AddSite("https://example.com/new", 5678, []string{"uptime", "performance", "broken_links"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 4321, site.ID)
 	assert.Equal(t, "https://example.com/new", site.URL)
 }
@@ -99,5 +100,5 @@ func TestRemoveSite(t *testing.T) {
 	httpmock.ActivateNonDefault(client.GetClient())
 
 	err := client.RemoveSite(1234)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
