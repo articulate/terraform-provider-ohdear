@@ -10,6 +10,7 @@ import (
 
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestClient(t *testing.T) {
@@ -24,7 +25,7 @@ func TestClient(t *testing.T) {
 	}
 
 	team, err := strconv.Atoi(teamID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	url := os.Getenv("OHDEAR_API_URL")
 	if url == "" {
@@ -41,7 +42,7 @@ func TestClient(t *testing.T) {
 	client.SetUserAgent(ua)
 
 	create, err := client.AddSite("https://example.com", team, []string{"uptime"})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// make sure we remove the site even if tests fail
 	t.Cleanup(func() {
@@ -62,28 +63,28 @@ func TestClient(t *testing.T) {
 
 	// get the site
 	site, err := client.GetSite(create.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, create, site)
 
 	// disable the uptime check
 	err = client.DisableCheck(uptime)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	update, err := client.GetSite(site.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, enabled = getCheckInfo(update)
 	assert.Empty(t, enabled)
 
 	// enable the uptime check
 	err = client.EnableCheck(uptime)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	update, err = client.GetSite(site.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	_, enabled = getCheckInfo(update)
 	assert.ElementsMatch(t, []string{"uptime"}, enabled)
 
 	// delete the site
 	err = client.RemoveSite(site.ID)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	// verify it was deleted (wait because sometimes it takes the api a second to update)
 	time.Sleep(5 * time.Second)
@@ -91,7 +92,7 @@ func TestClient(t *testing.T) {
 	assert.Nil(t, removed)
 
 	var e *Error
-	assert.True(t, errors.As(err, &e))
+	require.ErrorAs(t, err, &e)
 	assert.Equal(t, 404, e.Response.StatusCode())
 }
 
@@ -114,7 +115,7 @@ func TestSetUserAgent(t *testing.T) {
 
 	client.SetUserAgent("user-agent/test")
 	_, err := client.R().Get("/ping")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func getCheckInfo(s *Site) (int, []string) {
