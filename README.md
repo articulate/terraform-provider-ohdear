@@ -35,7 +35,8 @@ resource "ohdear_site" "test" {
 }
 ```
 
-## Requirements
+## Development Requirements
 
-* [Terraform](https://www.terraform.io/downloads.html) >= 0.12.x
-* [Go](https://golang.org/doc/install) 1.19 (for development)
+* [Go](https://golang.org/doc/install) (for development)
+* [golangci-lint](https://golangci-lint.run/)
+* [GoReleaser](https://goreleaser.com/)
