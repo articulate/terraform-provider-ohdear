@@ -3,7 +3,7 @@ module github.com/articulate/terraform-provider-ohdear
 go 1.21
 
 require (
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.11.0
 	github.com/hashicorp/terraform-plugin-docs v0.16.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.31.0
 	github.com/jarcoal/httpmock v1.3.1
