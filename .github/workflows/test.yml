@@ -42,8 +42,8 @@ jobs:
       max-parallel: 1
       matrix:
         terraform:
-          - '1.5.7'
-          - '1.6.0'
+          - '1.6.6'
+          - '1.7.2'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
