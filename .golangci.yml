@@ -19,6 +19,7 @@ linters:
     - sqlclosecheck
     - maligned
     - wrapcheck
+    - perfsprint
 
 issues:
   exclude-rules:
