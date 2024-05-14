@@ -25,7 +25,7 @@ func NewClient(baseURL, token string) *Client {
 	client.SetRetryCount(3)
 	client.SetRetryWaitTime(5 * time.Second)
 	client.SetRetryMaxWaitTime(20 * time.Second)
-	client.AddRetryCondition(func(r *resty.Response, err error) bool {
+	client.AddRetryCondition(func(r *resty.Response, _ error) bool {
 		return r.StatusCode() == http.StatusTooManyRequests
 	})
 
