@@ -24,9 +24,9 @@ func init() {
 
 func TestAccOhdearSite(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
-	url := fmt.Sprintf("https://example.com/%s", name)
-	resourceName := fmt.Sprintf("ohdear_site.%s", name)
-	updatedURL := fmt.Sprintf("%s/new", url)
+	url := "https://example.com/" + name
+	resourceName := "ohdear_site." + name
+	updatedURL := url + "/new"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -74,8 +74,8 @@ func TestAccOhdearSite(t *testing.T) {
 
 func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
-	url := fmt.Sprintf("https://example.com/%s", name)
-	resourceName := fmt.Sprintf("ohdear_site.%s", name)
+	url := "https://example.com/" + name
+	resourceName := "ohdear_site." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -125,8 +125,8 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 
 func TestAccOhdearSite_TeamID(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
-	url := fmt.Sprintf("https://example.com/%s", name)
-	resourceName := fmt.Sprintf("ohdear_site.%s", name)
+	url := "https://example.com/" + name
+	resourceName := "ohdear_site." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
@@ -156,8 +156,8 @@ func TestAccOhdearSite_TeamID(t *testing.T) {
 
 func TestAccOhdearSite_HTTPDefaults(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
-	url := fmt.Sprintf("http://example.com/%s", name)
-	resourceName := fmt.Sprintf("ohdear_site.%s", name)
+	url := "http://example.com/" + name
+	resourceName := "ohdear_site." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
