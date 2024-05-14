@@ -34,16 +34,36 @@ jobs:
           cache: true
       - uses: golangci/golangci-lint-action@v4
 
+  versions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Terraform versions
+        id: versions
+        run: |
+          echo "terraform=$(curl -sL https://releases.hashicorp.com/terraform/index.json | jq -c '[
+            .versions | keys | .[] |
+            { version: ., semver: capture("(?<major>[0-9]+).(?<minor>[0-9]+).(?<patch>[0-9]+)(?<pre>.*)") } |
+            select(.semver.pre == "") |
+            {
+                version: .version,
+                group: (.semver.major + "." + .semver.minor),
+                major: .semver.major | tonumber,
+                minor: .semver.minor | tonumber,
+                patch: .semver.patch | tonumber
+            }
+          ] | group_by(.group) | [ .[] | sort_by(.patch) | .[-1] | .version ] | sort | .[-2:]')" >> "$GITHUB_OUTPUT"
+    outputs:
+      terraform: ${{ steps.versions.outputs.terraform }}
+
   test:
     runs-on: ubuntu-latest
+    needs: versions
     timeout-minutes: 15
     strategy:
       fail-fast: false
       max-parallel: 1
       matrix:
-        terraform:
-          - '1.6.6'
-          - '1.7.2'
+        terraform: ${{ fromJSON(needs.versions.outputs.terraform) }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
