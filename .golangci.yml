@@ -14,10 +14,8 @@ linters:
     - gosec
     - lll
   disable:
-    - scopelint
     - rowserrcheck
     - sqlclosecheck
-    - maligned
     - wrapcheck
     - perfsprint
 
