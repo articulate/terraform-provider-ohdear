@@ -2,12 +2,29 @@ name: Release
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - main
 
 jobs:
-  goreleaser:
+  release:
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_PRIVATE_KEY }}
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ steps.token.outputs.token }}
+          skip-github-pull-request: "${{ contains(github.event.head_commit.message, 'chore: release') }}"
+    outputs:
+      released: ${{ steps.release.outputs.release_created }}
+  publish:
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.released
     steps:
       - uses: actions/checkout@v4
         with:
