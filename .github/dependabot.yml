@@ -4,6 +4,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    commit-message:
+      include: scope
+      prefix: ci
     groups:
       actions:
         patterns:
@@ -13,6 +16,10 @@ updates:
     open-pull-requests-limit: 25
     schedule:
       interval: monthly
+    commit-message:
+      include: scope
+      prefix: deps
+      prefix-development: chore
     groups:
       terraform:
         patterns:
