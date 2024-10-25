@@ -19,6 +19,31 @@ jobs:
         with:
           token: ${{ steps.token.outputs.token }}
           skip-github-pull-request: "${{ contains(github.event.head_commit.message, 'chore: release') }}"
+      - if: steps.release.outputs.release_created
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ steps.token.outputs.token }}
+          script: |
+            const tag = '${{ steps.release.outputs.tag_name }}';
+
+            // Create annotated tag
+            const result = await github.rest.git.createTag({
+              ...context.repo,
+              tag,
+              message: `Release ${tag}`,
+              type: 'commit',
+              object: context.sha,
+            });
+            const sha = result.data.sha;
+
+            // Create the ref
+            await github.rest.git.createRef({
+              ...context.repo,
+              sha,
+              ref: `refs/tags/${tag}`,
+            });
+
+            core.setOutput('sha', sha);
     outputs:
       released: ${{ steps.release.outputs.release_created }}
   publish:
