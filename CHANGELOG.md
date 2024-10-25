@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.2](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.1...v2.2.2) (2024-10-25)
+
+
+### Continuous Integration
+
+* **release:** create goreleaser workflow that runs on tags ([#137](https://github.com/articulate/terraform-provider-ohdear/issues/137)) ([38be960](https://github.com/articulate/terraform-provider-ohdear/commit/38be96010719ad3e1a220e6456171ce86d8798ae))
+
 ## [2.2.1](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.0...v2.2.1) (2024-10-25)
 
 
