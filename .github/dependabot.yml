@@ -5,7 +5,6 @@ updates:
     schedule:
       interval: monthly
     commit-message:
-      include: scope
       prefix: ci
     groups:
       actions:
@@ -17,9 +16,8 @@ updates:
     schedule:
       interval: monthly
     commit-message:
-      include: scope
       prefix: deps
-      prefix-development: chore
+      prefix-development: build(gomod)
     groups:
       terraform:
         patterns:
