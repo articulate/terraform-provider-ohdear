@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.1](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.0...v2.2.1) (2024-10-25)
+
+
+### Continuous Integration
+
+* **release:** create tag for goreleaser ([#135](https://github.com/articulate/terraform-provider-ohdear/issues/135)) ([66c4937](https://github.com/articulate/terraform-provider-ohdear/commit/66c493735fa86d71be5e23f7c73d1798adbb5579))
+
 ## [2.2.0](https://github.com/articulate/terraform-provider-ohdear/compare/v2.1.13...v2.2.0) (2024-10-25)
 
 
