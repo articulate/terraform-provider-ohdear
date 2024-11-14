@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.3](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.2...v2.2.3) (2024-11-14)
+
+
+### Dependency Updates
+
+* bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.34.0 to 2.35.0 in the terraform group ([#140](https://github.com/articulate/terraform-provider-ohdear/issues/140)) ([c287ddd](https://github.com/articulate/terraform-provider-ohdear/commit/c287dddfda55c98c0907c819579a6d85ca640634))
+
 ## [2.2.2](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.1...v2.2.2) (2024-10-25)
 
 
