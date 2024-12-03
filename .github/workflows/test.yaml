@@ -51,7 +51,8 @@ jobs:
                 minor: .semver.minor | tonumber,
                 patch: .semver.patch | tonumber
             }
-          ] | group_by(.group) | [ .[] | sort_by(.patch) | .[-1] | .version ] | sort | .[-2:]')" >> "$GITHUB_OUTPUT"
+          ] | group_by(.group) | [ .[] | sort_by(.patch) | .[-1] | .version ] |
+          sort_by(.|split(".")|map(tonumber)) | .[-2:]')" >> "$GITHUB_OUTPUT"
     outputs:
       terraform: ${{ steps.versions.outputs.terraform }}
 
