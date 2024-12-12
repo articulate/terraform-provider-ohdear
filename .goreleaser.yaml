@@ -42,3 +42,5 @@ signs:
       - "${signature}"
       - "--detach-sign"
       - "${artifact}"
+release:
+  use_existing_draft: true
