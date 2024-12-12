@@ -25,6 +25,7 @@ jobs:
           passphrase: ${{ secrets.PASSPHRASE }}
       - uses: goreleaser/goreleaser-action@v6
         with:
+          version: nightly
           args: release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
