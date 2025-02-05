@@ -14,7 +14,7 @@
     { "type": "docs", "section": "Documentation", "hidden": true },
     { "type": "style", "section": "Styles", "hidden": true },
     { "type": "chore", "section": "Miscellaneous", "hidden": true },
-    { "type": "refactor", "section": "Refactors", "hidden": true },
+    { "type": "refactor", "section": "Refactors" },
     { "type": "test", "section": "Tests", "hidden": true },
     { "type": "build", "section": "Build", "hidden": true },
     { "type": "ci", "section": "Continuous Integration", "hidden": true }
