@@ -31,7 +31,7 @@ func TestProvider(t *testing.T) {
 }
 
 func TestProvider_impl(_ *testing.T) {
-	var _ schema.Provider = *New()
+	var _ schema.Provider = *New() //nolint:staticcheck
 }
 
 func testAccPreCheck(t *testing.T) {

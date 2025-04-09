@@ -1,32 +1,74 @@
+version: "2"
 linters:
-  presets:
-    - bugs
-    - error
-    - performance
   enable:
-    - gofmt
-    - gofumpt
-    - revive
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - contextcheck
+    - durationcheck
+    - err113
+    - errchkjson
+    - errorlint
+    - exhaustive
+    - fatcontext
+    - gocheckcompilerdirectives
+    - gochecksumtype
     - gocyclo
-    - misspell
-    - whitespace
-    - goimports
     - gosec
+    - gosmopolitan
     - lll
+    - loggercheck
+    - makezero
+    - misspell
+    - musttag
+    - nilerr
+    - nilnesserr
+    - noctx
+    - prealloc
+    - protogetter
+    - reassign
+    - recvcheck
+    - revive
+    - spancheck
+    - testifylint
+    - whitespace
+    - zerologlint
   disable:
+    - perfsprint
     - rowserrcheck
     - sqlclosecheck
     - wrapcheck
-    - perfsprint
-
-issues:
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - err113
-
-linters-settings:
-  gocyclo:
-    min-complexity: 10
-  goimports:
-    local-prefixes: github.com/articulate/terraform-provider-ohdear
+  settings:
+    gocyclo:
+      min-complexity: 10
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    rules:
+      - linters:
+          - err113
+        path: _test\.go
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofmt
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/articulate/terraform-provider-ohdear
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
