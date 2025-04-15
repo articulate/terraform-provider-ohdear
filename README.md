@@ -13,7 +13,7 @@ terraform {
   required_providers {
     ohdear = {
       source = "articulate/ohdear"
-      version = "2.2.4"
+      version = "2.3.0"
     }
   }
 }
