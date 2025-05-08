@@ -1,7 +1,6 @@
 package provider
 
 import (
-	"context"
 	"os"
 	"testing"
 
@@ -42,7 +41,7 @@ func testAccPreCheck(t *testing.T) {
 		t.Fatal("OHDEAR_TEAM_ID must be set for acceptance tests")
 	}
 
-	diags := testAccProvider.Configure(context.TODO(), terraform.NewResourceConfigRaw(nil))
+	diags := testAccProvider.Configure(t.Context(), terraform.NewResourceConfigRaw(nil))
 	if diags.HasError() {
 		t.Fatal(diags[0].Summary)
 	}

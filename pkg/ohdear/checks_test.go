@@ -9,8 +9,8 @@ import (
 
 func TestEnableCheck(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{"id": 1234})
 	require.NoError(t, err)
@@ -25,8 +25,8 @@ func TestEnableCheck(t *testing.T) {
 
 func TestDisableCheck(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{"id": 4321})
 	require.NoError(t, err)

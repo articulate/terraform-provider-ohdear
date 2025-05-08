@@ -32,6 +32,7 @@ linters:
     - revive
     - spancheck
     - testifylint
+    - usetesting
     - whitespace
     - zerologlint
   disable:
