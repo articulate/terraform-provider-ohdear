@@ -12,8 +12,8 @@ import (
 
 func TestGetSite(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{
 		"id":      1234,
@@ -53,8 +53,8 @@ func TestGetSite(t *testing.T) {
 
 func TestAddSite(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	httpmock.RegisterResponder("POST", "https://ohdear.test/api/sites",
 		func(req *http.Request) (*http.Response, error) {
@@ -91,8 +91,8 @@ func TestAddSite(t *testing.T) {
 
 func TestRemoveSite(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	httpmock.RegisterResponder("DELETE", "https://ohdear.test/api/sites/1234", httpmock.NewStringResponder(204, ""))
 

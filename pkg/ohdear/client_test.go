@@ -98,8 +98,8 @@ func TestClient(t *testing.T) {
 
 func TestSetUserAgent(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	httpmock.RegisterResponder("GET", "https://ohdear.test/ping",
 		func(req *http.Request) (*http.Response, error) {

@@ -46,8 +46,8 @@ func TestError(t *testing.T) {
 
 func TestErrorFromResponse(t *testing.T) {
 	_, reset := mocklog()
-	defer reset()
-	defer httpmock.DeactivateAndReset()
+	t.Cleanup(reset)
+	t.Cleanup(httpmock.DeactivateAndReset)
 
 	resp, err := httpmock.NewJsonResponder(404, map[string]interface{}{"message": "Not found"})
 	require.NoError(t, err)

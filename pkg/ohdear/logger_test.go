@@ -22,7 +22,7 @@ func mocklog() (*bytes.Buffer, func()) {
 func TestTerraformLogger(t *testing.T) {
 	logger := &TerraformLogger{}
 	out, reset := mocklog()
-	defer reset()
+	t.Cleanup(reset)
 
 	logger.Errorf("test error message")
 	assert.Contains(t, out.String(), "[ERROR] test error message\n", out.String())
