@@ -32,7 +32,7 @@ jobs:
           go-version-file: go.mod
           check-latest: true
           cache: true
-      - uses: golangci/golangci-lint-action@v7
+      - uses: golangci/golangci-lint-action@v8
 
   versions:
     runs-on: ubuntu-latest
