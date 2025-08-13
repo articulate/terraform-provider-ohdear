@@ -10,6 +10,9 @@ const (
 	MixedContentCheck            = "mixed_content"
 	PerformanceCheck             = "performance"
 	DNSCheck                     = "dns"
+	LighthouseCheck              = "lighthouse"
+	SitemapCheck                 = "sitemap"
+	DomainCheck                  = "domain"
 )
 
 var AllChecks = []string{
@@ -20,6 +23,9 @@ var AllChecks = []string{
 	MixedContentCheck,
 	PerformanceCheck,
 	DNSCheck,
+	LighthouseCheck,
+	SitemapCheck,
+	DomainCheck,
 }
 
 type Check struct {
