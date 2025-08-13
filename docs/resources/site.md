@@ -56,6 +56,9 @@ Optional:
 - `mixed_content` (Boolean) Enable mixed content checks.
 - `performance` (Boolean) Enable performance checks.
 - `uptime` (Boolean) Enable uptime checks.
+- `lighthouse` (Boolean) Enable Lighthouse checks.
+- `sitemap` (Boolean) Enable Sitemap checks.
+- `domain` (Boolean) Enable Domain checks.
 
 ## Import
 

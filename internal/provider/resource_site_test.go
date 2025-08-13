@@ -43,7 +43,7 @@ func TestAccOhdearSite(t *testing.T) {
 					testAccEnsureChecksEnabled(resourceName, []string{
 						"uptime", "broken_links", "certificate_health",
 						"certificate_transparency", "mixed_content",
-						"performance",
+						"performance", "lighthouse", "sitemap", "domain",
 					}),
 					testAccEnsureChecksDisabled(resourceName, []string{"dns"}),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
@@ -52,6 +52,9 @@ func TestAccOhdearSite(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_transparency", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.lighthouse", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.sitemap", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.domain", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.dns", "false"),
 				),
 			},
@@ -84,19 +87,32 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 		CheckDestroy:      testAccCheckSiteDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": true, "broken_links": true}),
+				Config: testAccOhdearSiteConfigChecks(
+					name,
+					url,
+					map[string]bool{
+						"uptime":       true,
+						"broken_links": true,
+						"lighthouse":   true,
+						"sitemap":      true,
+						"domain":       true,
+					},
+				),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					testAccEnsureSiteExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.lighthouse", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.sitemap", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.domain", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "false"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "false"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_transparency", "false"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "false"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.dns", "false"),
-					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links"}),
+					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links", "lighthouse", "sitemap", "domain"}),
 					testAccEnsureChecksDisabled(resourceName, []string{"mixed_content", "performance"}),
 				),
 			},
@@ -332,7 +348,7 @@ resource "ohdear_site" "%s" {
   url = "%s"
 
   checks {
-    %s
+	%s
   }
 }
 `, name, url, strings.Join(block, "\n    "))

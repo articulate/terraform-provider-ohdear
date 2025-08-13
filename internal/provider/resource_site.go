@@ -81,6 +81,21 @@ func resourceOhdearSite() *schema.Resource {
 							Default:     false,
 							Optional:    true,
 						},
+						ohdear.LighthouseCheck: {
+							Type:        schema.TypeBool,
+							Description: "Enable Lighthouse checks.",
+							Optional:    true,
+						},
+						ohdear.SitemapCheck: {
+							Type:        schema.TypeBool,
+							Description: "Enable Sitemap checks.",
+							Optional:    true,
+						},
+						ohdear.DomainCheck: {
+							Type:        schema.TypeBool,
+							Description: "Enable Domain checks.",
+							Optional:    true,
+						},
 					},
 				},
 			},
@@ -111,7 +126,10 @@ func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta inte
 			ohdear.CertificateTransparencyCheck: isHTTPS,
 			ohdear.MixedContentCheck:            isHTTPS,
 			ohdear.PerformanceCheck:             true,
-			ohdear.DNSCheck:                     false, // TODO: turn to true on next major release (breaking change)
+			ohdear.DNSCheck:                     false,
+			ohdear.LighthouseCheck:              true,
+			ohdear.SitemapCheck:                 true,
+			ohdear.DomainCheck:                  true,
 		})
 
 		if err := d.SetNew("checks", checks); err != nil {
