@@ -3,7 +3,6 @@ package provider
 import (
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,28 +15,22 @@ import (
 	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
-var teamID string
-
-func init() {
-	teamID = os.Getenv("OHDEAR_TEAM_ID")
-}
-
-func TestAccOhdearSite(t *testing.T) {
+func TestAccOhdearMonitor(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	url := "https://example.com/" + name
-	resourceName := "ohdear_site." + name
+	resourceName := "ohdear_monitor." + name
 	updatedURL := url + "/new"
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		IDRefreshName:     resourceName,
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckSiteDestroy,
+		CheckDestroy:      testAccCheckMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigBasic(name, url),
+				Config: testAccOhdearMonitorConfigBasic(name, url),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccEnsureSiteExists(resourceName),
+					testAccEnsureMonitorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					testAccEnsureChecksEnabled(resourceName, []string{
@@ -59,9 +52,9 @@ func TestAccOhdearSite(t *testing.T) {
 				ImportStateVerify: true,
 			},
 			{
-				Config: testAccOhdearSiteConfigBasic(name, updatedURL),
+				Config: testAccOhdearMonitorConfigBasic(name, updatedURL),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccEnsureSiteExists(resourceName),
+					testAccEnsureMonitorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", updatedURL),
 				),
@@ -70,33 +63,35 @@ func TestAccOhdearSite(t *testing.T) {
 	})
 }
 
-func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
+func TestAccOhdearMonitor_EnableDisableChecks(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	url := "https://example.com/" + name
-	resourceName := "ohdear_site." + name
+	resourceName := "ohdear_monitor." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		IDRefreshName:     resourceName,
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckSiteDestroy,
+		CheckDestroy:      testAccCheckMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": true, "broken_links": true}),
+				Config: testAccOhdearMonitorConfigChecks(name, url, map[string]bool{"uptime": true, "broken_links": true}),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccEnsureSiteExists(resourceName),
+					testAccEnsureMonitorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.broken_links", "true"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.certificate_health", "false"),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.mixed_content", "false"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.performance", "true"),
+					resource.TestCheckResourceAttr(resourceName, "checks.0.dns", "false"),
 					testAccEnsureChecksEnabled(resourceName, []string{"uptime", "broken_links"}),
 					testAccEnsureChecksDisabled(resourceName, []string{"mixed_content"}),
 				),
 			},
 			{
-				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": true}),
+				Config: testAccOhdearMonitorConfigChecks(name, url, map[string]bool{"uptime": true}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "true"),
@@ -107,7 +102,7 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 				),
 			},
 			{
-				Config: testAccOhdearSiteConfigChecks(name, url, map[string]bool{"uptime": false}),
+				Config: testAccOhdearMonitorConfigChecks(name, url, map[string]bool{"uptime": false}),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 					resource.TestCheckResourceAttr(resourceName, "checks.0.uptime", "false"),
@@ -118,27 +113,27 @@ func TestAccOhdearSite_EnableDisableChecks(t *testing.T) {
 	})
 }
 
-func TestAccOhdearSite_TeamID(t *testing.T) {
+func TestAccOhdearMonitor_TeamID(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	url := "https://example.com/" + name
-	resourceName := "ohdear_site." + name
+	resourceName := "ohdear_monitor." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		IDRefreshName:     resourceName,
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckSiteDestroy,
+		CheckDestroy:      testAccCheckMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config: testAccOhdearSiteConfigBasic(name, url),
+				Config: testAccOhdearMonitorConfigBasic(name, url),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					testAccEnsureSiteExists(resourceName),
+					testAccEnsureMonitorExists(resourceName),
 					resource.TestCheckResourceAttr(resourceName, "team_id", teamID),
 					resource.TestCheckResourceAttr(resourceName, "url", url),
 				),
 			},
 			{
-				Config:             testAccOhdearSiteConfigTeamID(name, url, "1"),
+				Config:             testAccOhdearMonitorConfigTeamID(name, url, "1"),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -149,19 +144,19 @@ func TestAccOhdearSite_TeamID(t *testing.T) {
 	})
 }
 
-func TestAccOhdearSite_HTTPDefaults(t *testing.T) {
+func TestAccOhdearMonitor_HTTPDefaults(t *testing.T) {
 	name := acctest.RandomWithPrefix("tf-acc-test")
 	url := "http://example.com/" + name
-	resourceName := "ohdear_site." + name
+	resourceName := "ohdear_monitor." + name
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t) },
 		IDRefreshName:     resourceName,
 		ProviderFactories: testAccProviderFactories,
-		CheckDestroy:      testAccCheckSiteDestroy,
+		CheckDestroy:      testAccCheckMonitorDestroy,
 		Steps: []resource.TestStep{
 			{
-				Config:             testAccOhdearSiteConfigBasic(name, url),
+				Config:             testAccOhdearMonitorConfigBasic(name, url),
 				PlanOnly:           true,
 				ExpectNonEmptyPlan: true,
 				Check: resource.ComposeAggregateTestCheckFunc(
@@ -179,10 +174,10 @@ func TestAccOhdearSite_HTTPDefaults(t *testing.T) {
 
 // Checks
 
-func doesSiteExists(strID string) (bool, error) {
+func doesMonitorExist(strID string) (bool, error) {
 	client := testAccProvider.Meta().(*Config).client
 	id, _ := strconv.Atoi(strID)
-	if _, err := client.GetSite(id); err != nil {
+	if _, err := client.GetMonitor(id); err != nil {
 		var e *ohdear.Error
 		if errors.As(err, &e) && e.Response.StatusCode() == 404 {
 			return false, nil
@@ -194,35 +189,35 @@ func doesSiteExists(strID string) (bool, error) {
 	return true, nil
 }
 
-func testAccCheckSiteDestroy(s *terraform.State) error {
+func testAccCheckMonitorDestroy(s *terraform.State) error {
 	for _, rs := range s.RootModule().Resources {
-		if rs.Type != "ohdear_site" {
+		if rs.Type != "ohdear_monitor" {
 			continue
 		}
 
 		// give the API time to update
 		time.Sleep(5 * time.Second)
 
-		exists, err := doesSiteExists(rs.Primary.ID)
+		exists, err := doesMonitorExist(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
 
 		if exists {
-			return fmt.Errorf("site still exists in Oh Dear: %s", rs.Primary.ID)
+			return fmt.Errorf("monitor still exists in Oh Dear: %s", rs.Primary.ID)
 		}
 	}
 	return nil
 }
 
-func testAccEnsureSiteExists(name string) resource.TestCheckFunc {
+func testAccEnsureMonitorExists(name string) resource.TestCheckFunc {
 	return func(s *terraform.State) error {
 		rs, ok := s.RootModule().Resources[name]
 		if !ok {
 			return fmt.Errorf("resource not found: %s", name)
 		}
 
-		exists, err := doesSiteExists(rs.Primary.ID)
+		exists, err := doesMonitorExist(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -235,94 +230,33 @@ func testAccEnsureSiteExists(name string) resource.TestCheckFunc {
 	}
 }
 
-func testAccEnsureChecksEnabled(name string, checksWanted []string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*Config).client
-
-		missingErr := fmt.Errorf("resource not found: %s", name)
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return missingErr
-		}
-		siteID, _ := strconv.Atoi(rs.Primary.ID)
-		site, _ := client.GetSite(siteID)
-
-		for _, check := range checksWanted {
-			enabled := isCheckEnabled(site, check)
-			if !enabled {
-				return fmt.Errorf("Check %s not enabled for site %s", check, name)
-			}
-		}
-
-		return nil
-	}
-}
-
-// TODO: merge with enabled (take map of boolean to check all at once)
-func testAccEnsureChecksDisabled(name string, checksWanted []string) resource.TestCheckFunc {
-	return func(s *terraform.State) error {
-		client := testAccProvider.Meta().(*Config).client
-
-		rs, ok := s.RootModule().Resources[name]
-		if !ok {
-			return fmt.Errorf("resource not found: %s", name)
-		}
-
-		siteID, _ := strconv.Atoi(rs.Primary.ID)
-		site, err := client.GetSite(siteID)
-		if err != nil {
-			return err
-		}
-
-		for _, check := range checksWanted {
-			if isCheckEnabled(site, check) {
-				return fmt.Errorf("check %s not enabled for site %s", check, name)
-			}
-		}
-
-		return nil
-	}
-}
-
-// isCheckEnabled checks the site retrieved from OhDear to see whether the
-// specified check is present and enabled
-func isCheckEnabled(site *ohdear.Site, checkName string) bool {
-	for _, aCheck := range site.Checks {
-		if aCheck.Type == checkName && aCheck.Enabled == true {
-			return true
-		}
-	}
-
-	return false
-}
-
 // Configs
 
-func testAccOhdearSiteConfigBasic(name, url string) string {
+func testAccOhdearMonitorConfigBasic(name, url string) string {
 	return fmt.Sprintf(`
-resource "ohdear_site" "%s" {
+resource "ohdear_monitor" "%s" {
   url = "%s"
 }
 `, name, url)
 }
 
-func testAccOhdearSiteConfigTeamID(name, url, team string) string {
+func testAccOhdearMonitorConfigTeamID(name, url, team string) string {
 	return fmt.Sprintf(`
-resource "ohdear_site" "%s" {
+resource "ohdear_monitor" "%s" {
   team_id = %s
   url     = "%s"
 }
 `, name, team, url)
 }
 
-func testAccOhdearSiteConfigChecks(name, url string, checks map[string]bool) string {
+func testAccOhdearMonitorConfigChecks(name, url string, checks map[string]bool) string {
 	block := []string{}
 	for check, enabled := range checks {
 		block = append(block, fmt.Sprintf("%s = %t", check, enabled))
 	}
 
 	return fmt.Sprintf(`
-resource "ohdear_site" "%s" {
+resource "ohdear_monitor" "%s" {
   url = "%s"
 
   checks {

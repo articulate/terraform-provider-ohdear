@@ -14,22 +14,19 @@ import (
 	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
-func resourceOhdearSite() *schema.Resource {
+func resourceOhdearMonitor() *schema.Resource {
 	return &schema.Resource{
-		Description: "`ohdear_site` manages a site in Oh Dear.",
-		DeprecationMessage: "`ohdear_site` is deprecated and will be removed in a future major release. " +
-			"Please use `ohdear_monitor` instead, which now supports all site functionality.",
-
-		CreateContext: resourceOhdearSiteCreate,
-		ReadContext:   resourceOhdearSiteRead,
-		DeleteContext: resourceOhdearSiteDelete,
-		UpdateContext: resourceOhdearSiteUpdate,
+		Description:   "`ohdear_monitor` manages a monitor in Oh Dear.",
+		CreateContext: resourceOhdearMonitorCreate,
+		ReadContext:   resourceOhdearMonitorRead,
+		DeleteContext: resourceOhdearMonitorDelete,
+		UpdateContext: resourceOhdearMonitorUpdate,
 		Schema: map[string]*schema.Schema{
 			"url": {
 				Type:         schema.TypeString,
 				Required:     true,
 				ForceNew:     true,
-				Description:  "URL of the site to be checked.",
+				Description:  "URL of the monitor to be checked.",
 				ValidateFunc: validation.IsURLWithHTTPorHTTPS,
 			},
 			"team_id": {
@@ -37,11 +34,11 @@ func resourceOhdearSite() *schema.Resource {
 				Optional:    true,
 				Computed:    true,
 				ForceNew:    true,
-				Description: "ID of the team for this site. If not set, will use `team_id` configured in provider.",
+				Description: "ID of the team for this monitor. If not set, will use `team_id` configured in provider.",
 			},
 			"checks": {
 				Type:        schema.TypeList,
-				Description: "Set the checks enabled for the site. If block is not present, it will enable all checks.",
+				Description: "Set the checks enabled for the monitor. If block is not present, it will enable all checks.",
 				Optional:    true,
 				Computed:    true,
 				MaxItems:    1,
@@ -97,14 +94,14 @@ func resourceOhdearSite() *schema.Resource {
 				},
 			},
 		},
-		CustomizeDiff: resourceOhdearSiteDiff,
+		CustomizeDiff: resourceOhdearMonitorDiff,
 		Importer: &schema.ResourceImporter{
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 	}
 }
 
-func getSiteID(d *schema.ResourceData) (int, error) {
+func getMonitorID(d *schema.ResourceData) (int, error) {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
 		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %w", err)
@@ -112,7 +109,7 @@ func getSiteID(d *schema.ResourceData) (int, error) {
 	return id, err
 }
 
-func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
+func resourceOhdearMonitorDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
 	checks := d.Get("checks").([]interface{})
 	if len(checks) == 0 {
 		isHTTPS := strings.HasPrefix(d.Get("url").(string), "https")
@@ -137,120 +134,108 @@ func resourceOhdearSiteDiff(_ context.Context, d *schema.ResourceDiff, meta inte
 	return nil
 }
 
-func resourceOhdearSiteCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Println("[DEBUG] Calling Create lifecycle function for site")
+func resourceOhdearMonitorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Println("[DEBUG] Calling Create lifecycle function for monitor")
 
 	client := meta.(*Config).client
-	site, err := client.AddSite(d.Get("url").(string), d.Get("team_id").(int), checksWanted(d))
+	monitor, err := client.AddMonitor(d.Get("url").(string), d.Get("team_id").(int), checksWanted(d))
 	if err != nil {
-		return diagErrorf(err, "Could not add site to Oh Dear")
+		return diagErrorf(err, "Could not add monitor to Oh Dear")
 	}
 
-	d.SetId(strconv.Itoa(site.ID))
+	d.SetId(strconv.Itoa(monitor.ID))
 
-	return resourceOhdearSiteRead(ctx, d, meta)
+	return resourceOhdearMonitorRead(ctx, d, meta)
 }
 
-func resourceOhdearSiteRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Printf("[DEBUG] Calling Read lifecycle function for site %s\n", d.Id())
+func resourceOhdearMonitorRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Printf("[DEBUG] Calling Read lifecycle function for monitor %s\n", d.Id())
 
-	id, err := getSiteID(d)
+	id, err := getMonitorID(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	client := meta.(*Config).client
-	site, err := client.GetSite(id)
+	monitor, err := client.GetMonitor(id)
 	if err != nil {
-		return diagErrorf(err, "Could not find site %d in Oh Dear", id)
+		return diagErrorf(err, "Could not find monitor %d in Oh Dear", id)
 	}
 
-	checks := checkStateMapFromSite(site)
+	checks := checkStateMapFromMonitor(monitor)
 	if err := d.Set("checks", []interface{}{checks}); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("url", site.URL); err != nil {
+	if err := d.Set("url", monitor.URL); err != nil {
 		return diag.FromErr(err)
 	}
 
-	if err := d.Set("team_id", site.TeamID); err != nil {
+	if err := d.Set("team_id", monitor.TeamID); err != nil {
 		return diag.FromErr(err)
 	}
 
 	return nil
 }
 
-func resourceOhdearSiteDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Printf("[DEBUG] Calling Delete lifecycle function for site %s\n", d.Id())
+func resourceOhdearMonitorDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Printf("[DEBUG] Calling Delete lifecycle function for monitor %s\n", d.Id())
 
-	id, err := getSiteID(d)
+	id, err := getMonitorID(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	client := meta.(*Config).client
-	if err = client.RemoveSite(id); err != nil {
-		return diagErrorf(err, "Could not remove site %d from Oh Dear", id)
+	if err = client.RemoveMonitor(id); err != nil {
+		return diagErrorf(err, "Could not remove monitor %d from Oh Dear", id)
 	}
 
 	return nil
 }
 
-func resourceOhdearSiteUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	log.Printf("[DEBUG] Calling Update lifecycle function for site %s\n", d.Id())
+func resourceOhdearMonitorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+	log.Printf("[DEBUG] Calling Update lifecycle function for monitor %s\n", d.Id())
 
-	id, err := getSiteID(d)
+	id, err := getMonitorID(d)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	client := meta.(*Config).client
-	site, err := client.GetSite(id)
+	monitor, err := client.GetMonitor(id)
 	if err != nil {
-		return diagErrorf(err, "Could not find site in Oh Dear")
+		return diagErrorf(err, "Could not find monitor in Oh Dear")
 	}
 
 	// Sync downstream checks with config
 	checksWanted := checksWanted(d)
-	for _, check := range site.Checks {
+	for _, check := range monitor.Checks {
 		if check.Enabled {
 			if !contains(checksWanted, check.Type) {
 				if err := client.DisableCheck(check.ID); err != nil {
-					return diagErrorf(err, "Could not remove check to site in Oh Dear")
+					return diagErrorf(err, "Could not remove check to monitor in Oh Dear")
 				}
 			}
 		} else {
 			if contains(checksWanted, check.Type) {
 				if err := client.EnableCheck(check.ID); err != nil {
-					return diagErrorf(err, "Could not add check to site in Oh Dear")
+					return diagErrorf(err, "Could not add check to monitor in Oh Dear")
 				}
 			}
 		}
 	}
 
-	return resourceOhdearSiteRead(ctx, d, meta)
+	return resourceOhdearMonitorRead(ctx, d, meta)
 }
 
-func checkStateMapFromSite(site *ohdear.Site) map[string]bool {
+func checkStateMapFromMonitor(monitor *ohdear.Monitor) map[string]bool {
 	result := make(map[string]bool)
-	for _, check := range site.Checks {
+	for _, check := range monitor.Checks {
 		if contains(ohdear.AllChecks, check.Type) {
 			result[check.Type] = check.Enabled
 		}
 	}
 
 	return result
-}
-
-func checksWanted(d *schema.ResourceData) []string {
-	checks := []string{}
-	schema := d.Get("checks").([]interface{})[0].(map[string]interface{})
-	for check, enabled := range schema {
-		if enabled.(bool) {
-			checks = append(checks, check)
-		}
-	}
-
-	return checks
 }

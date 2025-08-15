@@ -59,7 +59,7 @@ func TestClient(t *testing.T) {
 	uptime, enabled := getCheckInfo(create)
 
 	assert.Equal(t, "https://example.com", create.URL)
-	assert.ElementsMatch(t, []string{"uptime"}, enabled)
+	assert.ElementsMatch(t, []string{"uptime", "performance"}, enabled)
 
 	// get the site
 	site, err := client.GetSite(create.ID)
@@ -80,7 +80,7 @@ func TestClient(t *testing.T) {
 	update, err = client.GetSite(site.ID)
 	require.NoError(t, err)
 	_, enabled = getCheckInfo(update)
-	assert.ElementsMatch(t, []string{"uptime"}, enabled)
+	assert.ElementsMatch(t, []string{"uptime", "performance"}, enabled)
 
 	// delete the site
 	err = client.RemoveSite(site.ID)

@@ -53,7 +53,8 @@ func New() *schema.Provider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"ohdear_site": resourceOhdearSite(),
+			"ohdear_site":    resourceOhdearSite(),
+			"ohdear_monitor": resourceOhdearMonitor(),
 		},
 		ConfigureContextFunc: providerConfigure,
 	}

@@ -51,12 +51,12 @@ func TestErrorFromResponse(t *testing.T) {
 
 	resp, err := httpmock.NewJsonResponder(404, map[string]interface{}{"message": "Not found"})
 	require.NoError(t, err)
-	httpmock.RegisterResponder("GET", "https://ohdear.test/api/sites/1", resp)
+	httpmock.RegisterResponder("GET", "https://ohdear.test/api/monitors/1", resp)
 
 	client := NewClient("https://ohdear.test", "")
 	httpmock.ActivateNonDefault(client.GetClient())
 
-	_, err = client.R().Get("/api/sites/1")
+	_, err = client.R().Get("/api/monitors/1")
 	require.Error(t, err)
 
 	var e *Error
