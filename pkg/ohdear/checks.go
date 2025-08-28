@@ -16,7 +16,6 @@ var AllChecks = []string{
 	UptimeCheck,
 	BrokenLinksCheck,
 	CertificateHealthCheck,
-	CertificateTransparencyCheck,
 	MixedContentCheck,
 	PerformanceCheck,
 	DNSCheck,

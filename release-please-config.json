@@ -23,6 +23,7 @@
     ".": {
       "release-type": "go",
       "draft": true,
+      "prerelease": true,
       "extra-files": ["README.md"]
     }
   }

@@ -25,11 +25,11 @@ provider "ohdear" {
 ```
 <!-- x-release-please-end -->
 
-To add a site to Oh Dear, create a `ohdear_site` resource.
+To add a monitor to Oh Dear, create a `ohdear_monitor` resource.
 
 ```hcl
-resource "ohdear_site" "test" {
-  url = "https://site.iwanttomonitor.com"
+resource "ohdear_monitor" "test" {
+  url = "https://monitor.iwanttomonitor.com"
 }
 ```
 
@@ -37,8 +37,8 @@ By default, all checks are enabled. You can customize this using the `checks`
 block. Any checks not defined in the block are disabled.
 
 ```hcl
-resource "ohdear_site" "test" {
-  url = "https://site.iwanttomonitor.com"
+resource "ohdear_monitor" "test" {
+  url = "https://monitor.iwanttomonitor.com"
 
   checks {
     uptime = true
