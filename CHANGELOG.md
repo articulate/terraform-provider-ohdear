@@ -1,5 +1,16 @@
 # Changelog
 
+## [3.0.0](https://github.com/articulate/terraform-provider-ohdear/compare/v2.3.0...v3.0.0) (2025-08-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* deprecate ohdear_site in favor of new ohdear_monitor ([#165](https://github.com/articulate/terraform-provider-ohdear/issues/165))
+
+### Features
+
+* deprecate ohdear_site in favor of new ohdear_monitor ([#165](https://github.com/articulate/terraform-provider-ohdear/issues/165)) ([935bdc0](https://github.com/articulate/terraform-provider-ohdear/commit/935bdc0b1f351de92156edc971e3fb5407cb5794))
+
 ## [2.3.0](https://github.com/articulate/terraform-provider-ohdear/compare/v2.2.4...v2.3.0) (2025-05-08)
 
 
