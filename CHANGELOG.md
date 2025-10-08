@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.2](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.1...v3.0.2) (2025-10-08)
+
+
+### Dependency Updates
+
+* bump the terraform group with 2 updates ([#171](https://github.com/articulate/terraform-provider-ohdear/issues/171)) ([f9944fd](https://github.com/articulate/terraform-provider-ohdear/commit/f9944fd54530f0266a275b4bada072b755f32ba7))
+
 ## [3.0.1](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.0...v3.0.1) (2025-09-02)
 
 
