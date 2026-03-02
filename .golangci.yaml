@@ -5,6 +5,7 @@ linters:
     - asciicheck
     - bidichk
     - bodyclose
+    - containedctx
     - contextcheck
     - durationcheck
     - err113
@@ -12,7 +13,10 @@ linters:
     - errorlint
     - exhaustive
     - fatcontext
+    - forbidigo
+    - funlen
     - gocheckcompilerdirectives
+    - gochecknoinits
     - gochecksumtype
     - gocyclo
     - gosec
@@ -21,10 +25,13 @@ linters:
     - loggercheck
     - makezero
     - misspell
+    - modernize
     - musttag
+    - nestif
     - nilerr
     - nilnesserr
     - noctx
+    - nonamedreturns
     - prealloc
     - protogetter
     - reassign
@@ -32,15 +39,22 @@ linters:
     - revive
     - spancheck
     - testifylint
+    - thelper
+    - tparallel
     - usetesting
     - whitespace
+    - wrapcheck
     - zerologlint
   disable:
     - perfsprint
     - rowserrcheck
     - sqlclosecheck
-    - wrapcheck
   settings:
+    forbidigo:
+      forbid:
+        - pattern: ^print(ln)?$
+        - pattern: ^spew\.(ConfigState\.)?Dump$
+      analyze-types: true
     gocyclo:
       min-complexity: 10
   exclusions:
@@ -53,20 +67,31 @@ linters:
     rules:
       - linters:
           - err113
+          - funlen
+          - lll
+          - wrapcheck
         path: _test\.go
+      - linters:
+          - funlen
+          - gochecknoinits
+          - nestif
+        path: internal/.+\.go
     paths:
       - third_party$
       - builtin$
       - examples$
 formatters:
   enable:
+    - gci
     - gofmt
     - gofumpt
     - goimports
   settings:
-    goimports:
-      local-prefixes:
-        - github.com/articulate/terraform-provider-ohdear
+    gci:
+      sections:
+        - standard
+        - default
+        - localmodule
   exclusions:
     generated: lax
     paths:

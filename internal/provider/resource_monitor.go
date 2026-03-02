@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -104,13 +105,13 @@ func resourceOhdearMonitor() *schema.Resource {
 func getMonitorID(d *schema.ResourceData) (int, error) {
 	id, err := strconv.Atoi(d.Id())
 	if err != nil {
-		return id, fmt.Errorf("corrupted resource ID in terraform state, Oh Dear only supports integer IDs. Err: %w", err)
+		return id, fmt.Errorf("corrupted resource ID in terraform state, OhDear only supports integer IDs. Err: %w", err)
 	}
-	return id, err
+	return id, nil
 }
 
-func resourceOhdearMonitorDiff(_ context.Context, d *schema.ResourceDiff, meta interface{}) error {
-	checks := d.Get("checks").([]interface{})
+func resourceOhdearMonitorDiff(_ context.Context, d *schema.ResourceDiff, meta any) error {
+	checks := d.Get("checks").([]any)
 	if len(checks) == 0 {
 		isHTTPS := strings.HasPrefix(d.Get("url").(string), "https")
 		checks = append(checks, map[string]bool{
@@ -122,19 +123,21 @@ func resourceOhdearMonitorDiff(_ context.Context, d *schema.ResourceDiff, meta i
 		})
 
 		if err := d.SetNew("checks", checks); err != nil {
-			return err
+			return fmt.Errorf("could not set checks: %w", err)
 		}
 	}
 
 	// set team_id from provider default if not provided
 	if d.Get("team_id") == 0 {
-		return d.SetNew("team_id", meta.(*Config).teamID)
+		if err := d.SetNew("team_id", meta.(*Config).teamID); err != nil {
+			return fmt.Errorf("could not team_id: %w", err)
+		}
 	}
 
 	return nil
 }
 
-func resourceOhdearMonitorCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearMonitorCreate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	log.Println("[DEBUG] Calling Create lifecycle function for monitor")
 
 	client := meta.(*Config).client
@@ -148,7 +151,7 @@ func resourceOhdearMonitorCreate(ctx context.Context, d *schema.ResourceData, me
 	return resourceOhdearMonitorRead(ctx, d, meta)
 }
 
-func resourceOhdearMonitorRead(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearMonitorRead(_ context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Read lifecycle function for monitor %s\n", d.Id())
 
 	id, err := getMonitorID(d)
@@ -163,7 +166,7 @@ func resourceOhdearMonitorRead(_ context.Context, d *schema.ResourceData, meta i
 	}
 
 	checks := checkStateMapFromMonitor(monitor)
-	if err := d.Set("checks", []interface{}{checks}); err != nil {
+	if err := d.Set("checks", []any{checks}); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -178,7 +181,7 @@ func resourceOhdearMonitorRead(_ context.Context, d *schema.ResourceData, meta i
 	return nil
 }
 
-func resourceOhdearMonitorDelete(_ context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearMonitorDelete(_ context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Delete lifecycle function for monitor %s\n", d.Id())
 
 	id, err := getMonitorID(d)
@@ -194,7 +197,7 @@ func resourceOhdearMonitorDelete(_ context.Context, d *schema.ResourceData, meta
 	return nil
 }
 
-func resourceOhdearMonitorUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
+func resourceOhdearMonitorUpdate(ctx context.Context, d *schema.ResourceData, meta any) diag.Diagnostics {
 	log.Printf("[DEBUG] Calling Update lifecycle function for monitor %s\n", d.Id())
 
 	id, err := getMonitorID(d)
@@ -212,13 +215,13 @@ func resourceOhdearMonitorUpdate(ctx context.Context, d *schema.ResourceData, me
 	checksWanted := checksWanted(d)
 	for _, check := range monitor.Checks {
 		if check.Enabled {
-			if !contains(checksWanted, check.Type) {
+			if !slices.Contains(checksWanted, check.Type) {
 				if err := client.DisableCheck(check.ID); err != nil {
 					return diagErrorf(err, "Could not remove check to monitor in Oh Dear")
 				}
 			}
 		} else {
-			if contains(checksWanted, check.Type) {
+			if slices.Contains(checksWanted, check.Type) {
 				if err := client.EnableCheck(check.ID); err != nil {
 					return diagErrorf(err, "Could not add check to monitor in Oh Dear")
 				}
@@ -232,7 +235,7 @@ func resourceOhdearMonitorUpdate(ctx context.Context, d *schema.ResourceData, me
 func checkStateMapFromMonitor(monitor *ohdear.Monitor) map[string]bool {
 	result := make(map[string]bool)
 	for _, check := range monitor.Checks {
-		if contains(ohdear.AllChecks, check.Type) {
+		if slices.Contains(ohdear.AllChecks, check.Type) {
 			result[check.Type] = check.Enabled
 		}
 	}

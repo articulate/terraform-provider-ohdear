@@ -316,7 +316,7 @@ resource "ohdear_site" "%s" {
 }
 
 func testAccOhdearSiteConfigChecks(name, url string, checks map[string]bool) string {
-	block := []string{}
+	block := make([]string, 0, len(checks))
 	for check, enabled := range checks {
 		block = append(block, fmt.Sprintf("%s = %t", check, enabled))
 	}

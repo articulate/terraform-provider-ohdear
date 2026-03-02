@@ -11,14 +11,14 @@ func (l *TerraformLogger) log(level, message string) {
 	log.Printf("[%s] %s\n", level, message)
 }
 
-func (l *TerraformLogger) Errorf(format string, v ...interface{}) {
+func (l *TerraformLogger) Errorf(format string, v ...any) {
 	l.log("ERROR", fmt.Sprintf(format, v...))
 }
 
-func (l *TerraformLogger) Warnf(format string, v ...interface{}) {
+func (l *TerraformLogger) Warnf(format string, v ...any) {
 	l.log("WARN", fmt.Sprintf(format, v...))
 }
 
-func (l *TerraformLogger) Debugf(format string, v ...interface{}) {
+func (l *TerraformLogger) Debugf(format string, v ...any) {
 	l.log("DEBUG", fmt.Sprintf(format, v...))
 }

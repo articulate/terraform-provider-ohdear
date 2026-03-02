@@ -250,7 +250,7 @@ resource "ohdear_monitor" "%s" {
 }
 
 func testAccOhdearMonitorConfigChecks(name, url string, checks map[string]bool) string {
-	block := []string{}
+	block := make([]string, 0, len(checks))
 	for check, enabled := range checks {
 		block = append(block, fmt.Sprintf("%s = %t", check, enabled))
 	}

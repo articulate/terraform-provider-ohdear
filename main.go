@@ -1,10 +1,11 @@
 package main
 
 import (
+	"flag"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 
 	"github.com/articulate/terraform-provider-ohdear/internal/provider"
-	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
 )
 
 // Format example Terraform files
@@ -14,9 +15,14 @@ import (
 //go:generate go run github.com/hashicorp/terraform-plugin-docs/cmd/tfplugindocs
 
 func main() {
+	var debug bool
+
+	flag.BoolVar(&debug, "debug", false, "set to true to run the provider with support for debuggers")
+	flag.Parse()
+
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: provider.New,
 		ProviderAddr: "registry.terraform.io/articulate/ohdear",
-		Debug:        runtime.Debug(),
+		Debug:        debug,
 	})
 }

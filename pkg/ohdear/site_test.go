@@ -15,12 +15,12 @@ func TestGetSite(t *testing.T) {
 	t.Cleanup(reset)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{
+	resp, err := httpmock.NewJsonResponder(200, map[string]any{
 		"id":      1234,
 		"type":    "http",
 		"url":     "https://example.com",
 		"team_id": 5678,
-		"checks": []map[string]interface{}{
+		"checks": []map[string]any{
 			{
 				"id":      12,
 				"type":    "uptime",
@@ -67,12 +67,12 @@ func TestAddSite(t *testing.T) {
 				string(body),
 			)
 
-			return httpmock.NewJsonResponse(200, map[string]interface{}{
+			return httpmock.NewJsonResponse(200, map[string]any{
 				"id":      4321,
 				"type":    "http",
 				"url":     "https://example.com/new",
 				"team_id": 5678,
-				"checks": []map[string]interface{}{
+				"checks": []map[string]any{
 					{
 						"id":      12,
 						"type":    "uptime",
