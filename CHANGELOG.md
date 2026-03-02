@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.0.3](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.2...v3.0.3) (2026-03-02)
+
+
+### Dependency Updates
+
+* bump github.com/go-resty/resty/v2 from 2.16.5 to 2.17.1 ([#176](https://github.com/articulate/terraform-provider-ohdear/issues/176)) ([3643790](https://github.com/articulate/terraform-provider-ohdear/commit/3643790845564173881e79bb0d9d6e533b228904))
+* bump the terraform group across 1 directory with 2 updates ([#179](https://github.com/articulate/terraform-provider-ohdear/issues/179)) ([7d87ebe](https://github.com/articulate/terraform-provider-ohdear/commit/7d87ebecefd465922f03258fdbdc40b5c18d9d04))
+
+
+### Refactors
+
+* add more rules to golangci-lint and address them ([#178](https://github.com/articulate/terraform-provider-ohdear/issues/178)) ([1f6f83c](https://github.com/articulate/terraform-provider-ohdear/commit/1f6f83c40795a3f5887132f07dbcc90ffd9db719))
+
 ## [3.0.2](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.1...v3.0.2) (2025-10-08)
 
 
