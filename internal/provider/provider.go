@@ -9,7 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
-	"github.com/articulate/terraform-provider-ohdear/internal/runtime"
+	"github.com/articulate/terraform-provider-ohdear/internal"
 	"github.com/articulate/terraform-provider-ohdear/pkg/ohdear"
 )
 
@@ -60,10 +60,10 @@ func New() *schema.Provider {
 	}
 }
 
-func providerConfigure(_ context.Context, d *schema.ResourceData) (interface{}, diag.Diagnostics) {
+func providerConfigure(_ context.Context, d *schema.ResourceData) (any, diag.Diagnostics) {
 	ua := fmt.Sprintf(
 		"terraform-provider-ohdear/%s (https://github.com/articulate/terraform-provider-ohdear)",
-		runtime.Version,
+		internal.Version,
 	)
 	client := ohdear.NewClient(d.Get("api_url").(string), d.Get("api_token").(string))
 	client.SetUserAgent(ua)

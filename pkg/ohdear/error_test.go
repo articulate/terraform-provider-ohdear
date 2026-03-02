@@ -49,7 +49,7 @@ func TestErrorFromResponse(t *testing.T) {
 	t.Cleanup(reset)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	resp, err := httpmock.NewJsonResponder(404, map[string]interface{}{"message": "Not found"})
+	resp, err := httpmock.NewJsonResponder(404, map[string]any{"message": "Not found"})
 	require.NoError(t, err)
 	httpmock.RegisterResponder("GET", "https://ohdear.test/api/monitors/1", resp)
 

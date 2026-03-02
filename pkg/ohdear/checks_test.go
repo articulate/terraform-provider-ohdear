@@ -12,7 +12,7 @@ func TestEnableCheck(t *testing.T) {
 	t.Cleanup(reset)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{"id": 1234})
+	resp, err := httpmock.NewJsonResponder(200, map[string]any{"id": 1234})
 	require.NoError(t, err)
 	httpmock.RegisterResponder("POST", "https://ohdear.test/api/checks/1234/enable", resp)
 
@@ -28,7 +28,7 @@ func TestDisableCheck(t *testing.T) {
 	t.Cleanup(reset)
 	t.Cleanup(httpmock.DeactivateAndReset)
 
-	resp, err := httpmock.NewJsonResponder(200, map[string]interface{}{"id": 4321})
+	resp, err := httpmock.NewJsonResponder(200, map[string]any{"id": 4321})
 	require.NoError(t, err)
 	httpmock.RegisterResponder("POST", "https://ohdear.test/api/checks/4321/disable", resp)
 

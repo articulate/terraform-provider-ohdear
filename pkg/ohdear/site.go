@@ -14,7 +14,7 @@ func (c *Client) GetSite(id int) (*Site, error) {
 		SetResult(&Site{}).
 		Get(fmt.Sprintf("/api/monitors/%d", id))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not get site %d: %w", id, err)
 	}
 
 	return resp.Result().(*Site), nil
@@ -22,7 +22,7 @@ func (c *Client) GetSite(id int) (*Site, error) {
 
 func (c *Client) AddSite(url string, teamID int, checks []string) (*Site, error) {
 	resp, err := c.R().
-		SetBody(map[string]interface{}{
+		SetBody(map[string]any{
 			"url":     url,
 			"type":    "http",
 			"team_id": teamID,
@@ -31,13 +31,15 @@ func (c *Client) AddSite(url string, teamID int, checks []string) (*Site, error)
 		SetResult(&Site{}).
 		Post("/api/monitors")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not add site: %w", err)
 	}
 
 	return resp.Result().(*Site), nil
 }
 
 func (c *Client) RemoveSite(id int) error {
-	_, err := c.R().Delete(fmt.Sprintf("/api/monitors/%d", id))
-	return err
+	if _, err := c.R().Delete(fmt.Sprintf("/api/monitors/%d", id)); err != nil {
+		return fmt.Errorf("could not remove site %d: %w", id, err)
+	}
+	return nil
 }
