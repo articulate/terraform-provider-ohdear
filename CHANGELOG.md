@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.0.4](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.3...v3.0.4) (2026-04-13)
+
+
+### Dependency Updates
+
+* bump github.com/go-resty/resty/v2 from 2.17.1 to 2.17.2 ([#183](https://github.com/articulate/terraform-provider-ohdear/issues/183)) ([63568b5](https://github.com/articulate/terraform-provider-ohdear/commit/63568b5103f7bf9f55d88b49bd30f7e32da52e47))
+* bump github.com/hashicorp/terraform-plugin-sdk/v2 from 2.39.0 to 2.40.0 in the terraform group ([#182](https://github.com/articulate/terraform-provider-ohdear/issues/182)) ([0c3fcdf](https://github.com/articulate/terraform-provider-ohdear/commit/0c3fcdf45147d08d7febd15870ac26ed22297623))
+
 ## [3.0.3](https://github.com/articulate/terraform-provider-ohdear/compare/v3.0.2...v3.0.3) (2026-03-02)
 
 
