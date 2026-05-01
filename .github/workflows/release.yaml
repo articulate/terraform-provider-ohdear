@@ -14,13 +14,13 @@ jobs:
         with:
           app-id: ${{ secrets.GH_APP_ID }}
           private-key: ${{ secrets.GH_PRIVATE_KEY }}
-      - uses: googleapis/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         id: release
         with:
           token: ${{ steps.token.outputs.token }}
           skip-github-pull-request: "${{ contains(github.event.head_commit.message, 'chore: release') }}"
       - if: steps.release.outputs.release_created
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           github-token: ${{ steps.token.outputs.token }}
           script: |
