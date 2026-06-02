@@ -1,5 +1,8 @@
 # Terraform Provider OhDear
 
+> [!WARNING]
+> This provider is archived and will no longer recieve updates.
+
 A Terraform Provider for [Oh Dear](https://ohdear.app/).
 
 ## Usage
